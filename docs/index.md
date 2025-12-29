@@ -1,23 +1,22 @@
-# Voxta Python Client
+# Voxta Client
 
 A core library for interacting with the [Voxta](https://voxta.ai) conversational AI platform using Python. This client enables real-time communication with Voxta characters using the SignalR protocol.
 
-## Quick Install
+## Compatibility
 
-```bash
-pip install voxta-client
-```
+- **Voxta Server**: Designed for and tested with **v1.2.1**.
+- **Python**: Supports **3.9+**.
 
-## Protocol Support
+## Features
 
-| Category | Feature | Status |
-| :--- | :--- | :--- |
-| **Core** | Authentication, App Registration, Chat Subscription | ✅ Supported |
-| **Messaging** | Start Chat, Resume Chat, Send Message, Speech Requests | ✅ Supported |
-| **Control** | Interrupt, Pause, Inspect Session | ✅ Supported |
-| **Context** | Update Context, Actions/Events, Role Management | ✅ Supported |
-| **Media** | Playback Sync | ✅ Supported |
-| **Media** | Audio Streaming (PCM), Vision / Images | ❌ Not Planned |
+- **Real-time Interaction**: Full support for Voxta's SignalR/WebSockets protocol.
+- **Event-Driven**: Simple callback system for handling server events (messages, state changes, etc.).
+- **Session Management**: Easy handling of chat sessions, character selection, and context updates.
+- **Lightweight**: Minimal dependencies, built for performance and reliability.
+- **Modular Architecture**: Professional code structure following C# SDK conventions.
 
-[Get Started](getting-started.md){ .md-button .md-button--primary }
+## Documentation
 
+- [Getting Started](getting-started.md)
+- [Protocol Support Matrix](protocol.md)
+- [API Reference](api.md)

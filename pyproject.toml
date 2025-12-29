@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "A Python client library for interacting with the Voxta conversational AI platform via SignalR."
 readme = "README.md"
 authors = [{ name = "Dion Labs" }]
-license = { text = "MIT" }
+license = "MIT"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -17,7 +17,6 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -49,6 +48,14 @@ ignore = []
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+exclude = ["site*", "docs*"]
+
+[dependency-groups]
+dev = [
+    "mkdocs-material>=9.7.1",
+]
 
 [project.urls]
 Homepage = "https://github.com/dion-labs/voxta-client"

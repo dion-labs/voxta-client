@@ -1,33 +1,40 @@
-site_name: Voxta Python Client
-site_description: A Python client library for interacting with the Voxta conversational AI platform.
-site_url: https://dion-labs.github.io/voxta-client
+site_name: Voxta Client
+site_description: A Python client library for interacting with the Voxta conversational AI platform via SignalR.
+site_url: https://github.com/dion-labs/voxta-client
 
 theme:
   name: material
   # The DionLabs "Dark Mode" Palette
   palette:
     scheme: slate
-    primary: deep-purple  # Matches your #4a00e0 vibe
-    accent: cyan          # Matches your #00f2ff vibe
+    primary: deep-purple # Matches your #4a00e0 vibe
+    accent: cyan # Matches your #00f2ff vibe
 
   # The "Tech Lab" Font Stack
   font:
-    text: JetBrains Mono  # The font we used on the landing page
+    text: JetBrains Mono # The font we used on the landing page
     code: JetBrains Mono
 
   features:
-    - navigation.tabs        # Top-level tabs for clean navigation
-    - navigation.instant     # SPA-feel (no page reloads)
-    - content.code.copy      # Easy code copying
-    - toc.integrate          # Table of contents on the right
-    - navigation.sections
-    - navigation.top
+    - navigation.tabs # Top-level tabs for clean navigation
+    - navigation.instant # SPA-feel (no page reloads)
+    - content.code.copy # Easy code copying
+    - toc.integrate # Table of contents on the right
 
 # Shared Extra CSS to force the exact Hex Codes
 extra_css:
   - stylesheets/extra.css
 
+copyright: "© 2025 DionLabs.ai"
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Protocol Support: protocol.md
+  - API Reference: api.md
+
 markdown_extensions:
+  - admonition
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
@@ -35,31 +42,4 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
-  - pymdownx.tabbed:
-      alternate_style: true
-  - admonition
-  - attr_list
-  - md_in_html
-
-plugins:
-  - search
-  - mkdocstrings:
-      handlers:
-        python:
-          paths: [.]
-          options:
-            show_source: true
-            show_root_heading: true
-            show_category_heading: true
-
-copyright: "© 2025 DionLabs.ai"
-
-nav:
-  - Home: index.md
-  - Getting Started: getting-started.md
-  - API Reference:
-      - VoxtaClient: api/client.md
-      - Models: api/models.md
-      - Constants: api/constants.md
-  - Contributing: contributing.md
-
+  - tables

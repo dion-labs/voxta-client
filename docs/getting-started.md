@@ -2,15 +2,13 @@
 
 ## Installation
 
-You can install the Voxta Python Client directly from PyPI:
-
 ```bash
 pip install voxta-client
 ```
 
-## Basic Usage
+## Quick Start
 
-The following example shows how to connect to a local Voxta server and send a simple message.
+The following example demonstrates how to initialize the client, connect to a local Voxta server, and send a message.
 
 ```python
 import asyncio
@@ -26,7 +24,7 @@ async def main():
         if payload.get("senderType") == "Character":
             print(f"\nCharacter: {payload.get('text')}")
 
-    # 2. Negotiate connection
+    # 2. Negotiate authentication
     print("Negotiating connection...")
     token, cookies = client.negotiate()
     
@@ -56,7 +54,15 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-## Advanced Configuration
+## Event Callbacks
 
-For more complex scenarios, such as updating context or handling specific SignalR events, please refer to the [API Reference](api/client.md).
+The `VoxtaClient` uses an event-driven system. You can register callbacks using the `.on()` decorator or method.
 
+```python
+@client.on("chatStarted")
+async def on_chat_started(payload):
+    print(f"Chat started: {payload['chatId']}")
+
+# Or directly
+client.on("error", lambda p: print(f"Error: {p['message']}"))
+```

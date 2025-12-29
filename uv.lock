@@ -1137,6 +1137,11 @@ dev = [
     { name = "ruff" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "mkdocs-material" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "mkdocs-material", marker = "extra == 'dev'", specifier = ">=9.5.0" },
@@ -1149,6 +1154,9 @@ requires-dist = [
     { name = "websockets", specifier = ">=12.0" },
 ]
 provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "mkdocs-material", specifier = ">=9.7.1" }]
 
 [[package]]
 name = "watchdog"
