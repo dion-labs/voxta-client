@@ -7,11 +7,16 @@ class VoxtaModel:
     """Base class for Voxta data models."""
 
     def to_dict(self) -> dict[str, Any]:
-        data = {k: v for k, v in self.__dict__.items() if v is not None}
-        # Map internal names to SignalR/Voxta names
-        if "type_name" in data:
-            data["$type"] = data.pop("type_name")
-        return data
+        # Ensure $type is the first key in the resulting dictionary.
+        # This is often required by SignalR/Voxta for polymorphic deserialization.
+        res = {}
+        if "type_name" in self.__dict__:
+            res["$type"] = self.__dict__["type_name"]
+
+        for k, v in self.__dict__.items():
+            if k != "type_name" and v is not None:
+                res[k] = v
+        return res
 
 
 @dataclass

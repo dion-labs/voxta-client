@@ -63,8 +63,8 @@ class VoxtaTransport:
 
             # SignalR Handshake
             await self.send({"protocol": "json", "version": 1})
-            # Wait for handshake response (type 0 empty response in some SignalR versions,
-            # or just skip to read loop)
+            # Wait for handshake response (type 0 empty response in some SignalR versions)
+            await self.websocket.recv()
 
             asyncio.create_task(self._read_loop())
         except Exception as e:

@@ -114,6 +114,17 @@ class VoxtaClient:
         self.logger.info(f"Subscribing to chat: {chat_id}")
         await self.transport.send(payload)
 
+    async def inspect(self, session_id: str, enabled: bool = True):
+        invocation_id = str(uuid.uuid4())
+        payload = {
+            "type": 1,
+            "invocationId": invocation_id,
+            "target": "SendMessage",
+            "arguments": [{"$type": "inspect", "sessionId": session_id, "enabled": enabled}],
+        }
+        self.logger.info(f"Sending inspect: session={session_id}, enabled={enabled}")
+        await self.transport.send(payload)
+
     async def send_message(
         self,
         text: str,
@@ -161,6 +172,102 @@ class VoxtaClient:
             "target": "SendMessage",
             "arguments": [{"$type": "pause", "sessionId": target_session}],
         }
+        await self.transport.send(payload)
+
+    async def character_speech_request(
+        self, session_id: Optional[str] = None, character_id: Optional[str] = None
+    ):
+        """
+        Sends characterSpeechRequest to the server to ask the character to start/resume speaking.
+        """
+        target_session = session_id or self.session_id
+        target_character = character_id or self.assistant_id
+
+        if not target_session or not target_character:
+            self.logger.warning(
+                "Cannot send characterSpeechRequest: missing session_id or character_id"
+            )
+            return
+
+        invocation_id = str(uuid.uuid4())
+        payload = {
+            "type": 1,
+            "invocationId": invocation_id,
+            "target": "SendMessage",
+            "arguments": [
+                {
+                    "$type": "characterSpeechRequest",
+                    "sessionId": target_session,
+                    "characterId": target_character,
+                }
+            ],
+        }
+        self.logger.info(f"Sending characterSpeechRequest for character: {target_character}")
+        await self.transport.send(payload)
+
+    async def speech_playback_start(
+        self, session_id: Optional[str] = None, message_id: Optional[str] = None
+    ):
+        """
+        Sends speechPlaybackStart to the server.
+        """
+        target_session = session_id or self.session_id
+        target_message = message_id or self.last_message_id
+
+        if not target_session or not target_message:
+            self.logger.warning(
+                "Cannot send speechPlaybackStart: missing session_id or message_id"
+            )
+            return
+
+        invocation_id = str(uuid.uuid4())
+        payload = {
+            "type": 1,
+            "invocationId": invocation_id,
+            "target": "SendMessage",
+            "arguments": [
+                {
+                    "$type": "speechPlaybackStart",
+                    "sessionId": target_session,
+                    "messageId": target_message,
+                    "startIndex": 0,
+                    "endIndex": 0,
+                    "duration": 0,
+                }
+            ],
+        }
+        self.logger.info(f"Sending speechPlaybackStart for message: {target_message}")
+        await self.transport.send(payload)
+
+    async def speech_playback_complete(
+        self, session_id: Optional[str] = None, message_id: Optional[str] = None
+    ):
+        """
+        Sends speechPlaybackComplete to the server.
+        """
+        target_session = session_id or self.session_id
+        target_message = message_id or self.last_message_id
+
+        if not target_session or not target_message:
+            self.logger.warning(
+                "Cannot send speechPlaybackComplete: missing session_id or message_id"
+            )
+            return
+
+        invocation_id = str(uuid.uuid4())
+        payload = {
+            "type": 1,
+            "invocationId": invocation_id,
+            "target": "SendMessage",
+            "arguments": [
+                {
+                    "$type": "speechPlaybackComplete",
+                    "sessionId": target_session,
+                    "messageId": target_message,
+                }
+            ],
+        }
+        self.logger.info(f"Sending speechPlaybackComplete for message: {target_message}")
         await self.transport.send(payload)
 
     async def update_context(
