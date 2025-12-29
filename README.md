@@ -117,6 +117,10 @@ uv sync --all-extras
 uv run pre-commit install
 ```
 
+## Credits
+
+Special thanks to **Vega** from the official Voxta Discord for their invaluable work on the [Voxta Development Guide](https://github.com/vega-holdings/voxta_unoffical_docs/blob/main/VOXTA_DEVELOPMENT_GUIDE.md#6-websocket-protocol-reference) (repo: [vega-holdings/voxta_unoffical_docs](https://github.com/vega-holdings/voxta_unoffical_docs)). This project was made possible by their detailed documentation of the Voxta WebSocket protocol.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
