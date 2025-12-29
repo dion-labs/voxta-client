@@ -5,6 +5,10 @@ set -e
 echo "Cleaning dist directory..."
 rm -rf dist/
 
+# Prepare for release: remove dev suffix if present
+echo "Preparing release version..."
+uv version --bump stable
+
 # Build the latest artifacts
 echo "Building the package..."
 uv build
@@ -13,7 +17,7 @@ uv build
 echo "Uploading to PyPI..."
 uv run twine upload dist/*
 
-# Bump the version to the next patch using uv
-echo "Bumping version..."
-uv version --bump patch
+# Bump to the next development version
+echo "Bumping to next development version..."
+uv version --bump patch --bump dev
 
