@@ -39,8 +39,8 @@ This client implements the Voxta SignalR protocol. Below is the current support 
 | | Actions/Events | `updateContext` | ✅ Supported |
 | | Role Management | `enableRoles` | ✅ Supported |
 | **Media** | Playback Sync | `speechPlaybackStart/Complete` | ✅ Supported |
-| | Audio Streaming | `WebSocketStream` (PCM) | ⏳ Planned |
-| | Vision / Images | `visionCapture` | ⏳ Planned |
+| | Audio Streaming | `WebSocketStream` (PCM) | ❌ Not Planned |
+| | Vision / Images | `visionCapture` | ❌ Not Planned |
 
 ## Installation
 
