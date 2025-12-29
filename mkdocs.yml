@@ -25,6 +25,11 @@ theme:
 extra_css:
   - stylesheets/extra.css
 
+extra:
+  analytics:
+    provider: google
+    property: G-61ZYV30HGQ
+
 copyright: "© 2025 DionLabs.ai"
 
 nav:
