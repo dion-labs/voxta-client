@@ -13,3 +13,6 @@ dist/
 htmlcov/
 .DS_Store
 
+# Documentation
+site/
+
