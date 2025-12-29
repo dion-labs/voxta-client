@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
 ## Development
 
-This project uses [Ruff](https://github.com/astral-sh/ruff) for linting and formatting.
+This project uses [uv](https://github.com/astral-sh/uv) for dependency management and [Ruff](https://github.com/astral-sh/ruff) for linting.
 
 ### Setup
 
@@ -60,11 +60,11 @@ This project uses [Ruff](https://github.com/astral-sh/ruff) for linting and form
 git clone https://github.com/dion-labs/voxta-client.git
 cd voxta-client
 
-# Install with dev dependencies
-pip install -e ".[dev]"
+# Install dependencies and setup venv
+uv sync --all-extras
 
 # Install pre-commit hooks
-pre-commit install
+uv run pre-commit install
 ```
 
 ## License
