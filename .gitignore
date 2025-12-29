@@ -16,3 +16,6 @@ htmlcov/
 # Documentation
 site/
 
+# Credentials
+.pypirc
+
