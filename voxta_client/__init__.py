@@ -343,14 +343,40 @@ class VoxtaClient:
                     except json.JSONDecodeError as e:
                         self.logger.error(f"Failed to decode message chunk: {raw_msg} | Error: {e}")
 
+            except websockets.ConnectionClosed as e:
+                self.logger.info(f"Websocket connection closed: {e.code} ({e.reason})")
+                self.running = False
+                break
+            except asyncio.CancelledError:
+                self.logger.info("Read loop cancelled")
+                self.running = False
+                break
             except Exception as e:
-                self.logger.error(f"Error in read loop: {e}")
+                self.logger.error(f"Error in read loop: {type(e).__name__}: {e}")
                 self.running = False
                 break
 
     async def _handle_server_message(self, message: dict):
         msg_type = message.get("type")
         target = message.get("target")
+
+        # SignalR Message Types:
+        # 1: Invocation (Method call from server)
+        # 2: StreamItem
+        # 3: Completion (Response to method call from client)
+        # 4: StreamInvocation
+        # 5: CancelInvocation
+        # 6: Ping
+        # 7: Close
+
+        if msg_type == 7:
+            error = message.get("error")
+            allow_reconnect = message.get("allowReconnect")
+            self.logger.warning(
+                f"SignalR Close message received. Error: {error}, AllowReconnect: {allow_reconnect}"
+            )
+            self.running = False
+            return
 
         # Log ALL raw messages at INFO level for debugging
         if msg_type != 6:
@@ -359,6 +385,10 @@ class VoxtaClient:
             )
 
         if msg_type == 1:
+            invocation_error = message.get("error")
+            if invocation_error:
+                self.logger.error(f"SignalR Invocation Error: {invocation_error}")
+                await self._emit("error", {"message": invocation_error})
             arguments = message.get("arguments", [])
             if arguments:
                 payload = arguments[0]
@@ -496,16 +526,29 @@ class VoxtaClient:
                     self.is_thinking = False
         elif msg_type == 6:  # Ping
             pass
+        elif msg_type == 3:  # Completion
+            invocation_id = message.get("invocationId")
+            error = message.get("error")
+            if error:
+                self.logger.error(f"Invocation {invocation_id} failed: {error}")
+                await self._emit("error", {"invocationId": invocation_id, "message": error})
+            else:
+                self.logger.debug(f"Invocation {invocation_id} completed successfully")
         else:
             self.logger.debug(f"SignalR Message Type {msg_type}: {message}")
 
     async def _emit(self, event_name, data):
         if event_name in self.callbacks:
             for cb in self.callbacks[event_name]:
-                if asyncio.iscoroutinefunction(cb):
-                    await cb(data)
-                else:
-                    cb(data)
+                try:
+                    if asyncio.iscoroutinefunction(cb):
+                        await cb(data)
+                    else:
+                        cb(data)
+                except Exception as e:
+                    self.logger.error(
+                        f"Error in callback for event '{event_name}': {type(e).__name__}: {e}"
+                    )
 
     async def update_context(
         self,
@@ -557,4 +600,10 @@ class VoxtaClient:
         msg = json.dumps(data) + "\x1e"
         self.logger.info(f"SIGNALR OUT: {json.dumps(data)}")
         if self.websocket:
-            await self.websocket.send(msg)
+            try:
+                await self.websocket.send(msg)
+            except Exception as e:
+                self.logger.error(f"Failed to send message: {e}")
+                self.running = False
+        else:
+            self.logger.warning("Attempted to send message but websocket is not connected")

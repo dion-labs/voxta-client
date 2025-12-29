@@ -195,15 +195,59 @@ async def test_handle_error_logging():
         mock_log_info.assert_any_call("Ignoring 'Chat session already exists' error (this is normal during proxy resumption).")
 
 @pytest.mark.asyncio
-async def test_emit_callback_exception():
+async def test_emit_callback_exception_handled():
     client = VoxtaClient("http://localhost:5384")
     
     @client.on("test")
     async def buggy_callback(data):
         raise ValueError("Boom")
         
-    with pytest.raises(ValueError, match="Boom"):
+    # Should not raise exception anymore
+    with patch.object(client.logger, 'error') as mock_log:
         await client._emit("test", {})
+        mock_log.assert_called()
+        assert "Error in callback for event 'test'" in mock_log.call_args[0][0]
+
+@pytest.mark.asyncio
+async def test_handle_signalr_close():
+    client = VoxtaClient("http://localhost:5384")
+    client.running = True
+    
+    close_msg = {"type": 7, "error": "Server shutting down", "allowReconnect": True}
+    await client._handle_server_message(close_msg)
+    
+    assert client.running is False
+
+@pytest.mark.asyncio
+async def test_handle_signalr_completion_error():
+    client = VoxtaClient("http://localhost:5384")
+    
+    error_data = None
+    @client.on("error")
+    async def on_error(data):
+        nonlocal error_data
+        error_data = data
+        
+    completion_msg = {"type": 3, "invocationId": "123", "error": "Method not found"}
+    await client._handle_server_message(completion_msg)
+    
+    assert error_data["message"] == "Method not found"
+    assert error_data["invocationId"] == "123"
+
+@pytest.mark.asyncio
+async def test_handle_signalr_invocation_error():
+    client = VoxtaClient("http://localhost:5384")
+    
+    error_data = None
+    @client.on("error")
+    async def on_error(data):
+        nonlocal error_data
+        error_data = data
+        
+    invocation_msg = {"type": 1, "target": "SomeMethod", "error": "Internal Server Error"}
+    await client._handle_server_message(invocation_msg)
+    
+    assert error_data["message"] == "Internal Server Error"
 
 @pytest.mark.asyncio
 async def test_handle_chats_sessions_updated(mock_websocket):
