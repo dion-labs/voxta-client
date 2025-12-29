@@ -57,7 +57,7 @@ async def main():
         await asyncio.wait_for(ready_event.wait(), timeout=10.0)
     except asyncio.TimeoutError:
         print("Timed out waiting for connection.")
-        client.running = False
+        await client.close()
         await connection_task
         return
 
@@ -78,7 +78,7 @@ async def main():
     finally:
         # Clean up
         print("\nClosing connection...")
-        client.running = False
+        await client.close()
         await connection_task
 
 
