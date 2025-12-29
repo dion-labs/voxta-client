@@ -27,23 +27,41 @@ import asyncio
 from voxta_client import VoxtaClient
 
 async def main():
-    # Initialize the client with your Voxta server URL
+    # 1. Initialize the client
     client = VoxtaClient("http://localhost:5384")
     
-    @client.on("welcome")
-    async def on_welcome(data):
-        print("Connected to Voxta!")
-        # Start a chat with a specific character
-        await client.start_chat("your_character_id")
-
+    # Set up event listeners
     @client.on("message")
     async def on_message(payload):
         if payload.get("senderType") == "Character":
-            print(f"Character: {payload.get('text')}")
+            print(f"\nCharacter: {payload.get('text')}")
 
-    # Negotiate and connect
+    # 2. Negotiate authentication
+    print("Negotiating connection...")
     token, cookies = client.negotiate()
-    await client.connect(token, cookies)
+    
+    # 3. Connect (runs the message loop in the background)
+    connection_task = asyncio.create_task(client.connect(token, cookies))
+    
+    # Wait for the client to be ready (connected and session pinned)
+    # The 'ready' event is triggered once a sessionId is acquired
+    ready_event = asyncio.Event()
+    client.on("ready", lambda _: ready_event.set())
+    
+    print("Connecting to Voxta...")
+    await ready_event.wait()
+    print(f"Connected! Session ID: {client.session_id}")
+
+    # 4. Send a message
+    print("Sending message...")
+    await client.send_message("Hello! Tell me a short story.")
+    
+    # Wait for response
+    await asyncio.sleep(10)
+    
+    # Clean up
+    client.running = False
+    await connection_task
 
 if __name__ == "__main__":
     asyncio.run(main())
