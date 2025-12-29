@@ -21,6 +21,8 @@ jobs:
         run: uv run ruff check .
       - name: Run Ruff Format
         run: uv run ruff format --check .
+      - name: Check Documentation
+        run: uv run mkdocs build --strict
 
   test:
     runs-on: ubuntu-latest
