@@ -15,14 +15,14 @@ WELCOME_EVENT = {
     "user": {
         "id": "a8e8ce68-72e5-a9fa-871a-7c124ccb1054",
         "name": "User",
-    }
+    },
 }
 
 # chatStarted event
 CHAT_STARTED_EVENT = {
     "$type": "chatStarted",
     "sessionId": "916f4059-1e81-983a-cb04-489176bcc680",
-    "chatId": "chat_12345"
+    "chatId": "chat_12345",
 }
 
 # update event (e.g. user message)
@@ -37,7 +37,7 @@ UPDATE_EVENT = {
     "chatTime": 2599170,
     "role": "User",
     "timestamp": "2025-12-29T11:04:42.7828357+00:00",
-    "sessionId": "916f4059-1e81-983a-cb04-489176bcc680"
+    "sessionId": "916f4059-1e81-983a-cb04-489176bcc680",
 }
 
 # replyGenerating event
@@ -47,7 +47,7 @@ REPLY_GENERATING_EVENT = {
     "senderId": "06c2046c-86d0-4e73-d5d8-0595022eb74d",
     "role": "Assistant",
     "isNarration": False,
-    "sessionId": "916f4059-1e81-983a-cb04-489176bcc680"
+    "sessionId": "916f4059-1e81-983a-cb04-489176bcc680",
 }
 
 # replyStart event
@@ -56,7 +56,7 @@ REPLY_START_EVENT = {
     "messageId": "5d33a8b2-766f-4b3f-b0f1-7c2b1d8a3111",
     "senderId": "06c2046c-86d0-4e73-d5d8-0595022eb74d",
     "chatTime": 2614885,
-    "sessionId": "916f4059-1e81-983a-cb04-489176bcc680"
+    "sessionId": "916f4059-1e81-983a-cb04-489176bcc680",
 }
 
 # replyChunk event
@@ -69,7 +69,7 @@ REPLY_CHUNK_EVENT = {
     "text": "Oh absolutely.",
     "audioUrl": "",
     "isNarration": False,
-    "sessionId": "916f4059-1e81-983a-cb04-489176bcc680"
+    "sessionId": "916f4059-1e81-983a-cb04-489176bcc680",
 }
 
 # speechPlaybackStart event
@@ -78,7 +78,7 @@ SPEECH_PLAYBACK_START_EVENT = {
     "messageId": "5d33a8b2-766f-4b3f-b0f1-7c2b1d8a3111",
     "startIndex": 0,
     "duration": 0,
-    "sessionId": "916f4059-1e81-983a-cb04-489176bcc680"
+    "sessionId": "916f4059-1e81-983a-cb04-489176bcc680",
 }
 
 # replyEnd event
@@ -89,7 +89,7 @@ REPLY_END_EVENT = {
     "tokens": 25,
     "messageIndex": 6,
     "conversationIndex": 6,
-    "sessionId": "916f4059-1e81-983a-cb04-489176bcc680"
+    "sessionId": "916f4059-1e81-983a-cb04-489176bcc680",
 }
 
 # action event
@@ -100,27 +100,24 @@ ACTION_EVENT = {
     "value": "play_neutral_emote",
     "role": "Assistant",
     "senderId": "06c2046c-86d0-4e73-d5d8-0595022eb74d",
-    "sessionId": "916f4059-1e81-983a-cb04-489176bcc680"
+    "sessionId": "916f4059-1e81-983a-cb04-489176bcc680",
 }
 
 # speechPlaybackComplete event
 SPEECH_PLAYBACK_COMPLETE_EVENT = {
     "$type": "speechPlaybackComplete",
     "messageId": "5d33a8b2-766f-4b3f-b0f1-7c2b1d8a3111",
-    "sessionId": "916f4059-1e81-983a-cb04-489176bcc680"
+    "sessionId": "916f4059-1e81-983a-cb04-489176bcc680",
 }
 
 # interruptSpeech event
 INTERRUPT_SPEECH_EVENT = {
     "$type": "interruptSpeech",
-    "sessionId": "916f4059-1e81-983a-cb04-489176bcc680"
+    "sessionId": "916f4059-1e81-983a-cb04-489176bcc680",
 }
 
 # error event
-ERROR_EVENT = {
-    "$type": "error",
-    "message": "Chat session already exists"
-}
+ERROR_EVENT = {"$type": "error", "message": "Chat session already exists"}
 
 # chatsSessionsUpdated event
 CHATS_SESSIONS_UPDATED_EVENT = {
@@ -130,16 +127,12 @@ CHATS_SESSIONS_UPDATED_EVENT = {
             "sessionId": "916f4059-1e81-983a-cb04-489176bcc680",
             "chatId": "00000000-0000-0000-0000-000000000000",
             "user": {"id": "a8e8ce68-72e5-a9fa-871a-7c124ccb1054", "name": "D"},
-            "characters": [{"id": "06c2046c-86d0-4e73-d5d8-0595022eb74d", "name": "Apex"}]
+            "characters": [{"id": "06c2046c-86d0-4e73-d5d8-0595022eb74d", "name": "Apex"}],
         }
-    ]
+    ],
 }
+
 
 # Wrap in SignalR type 1 message structure
 def wrap_signalr(payload):
-    return {
-        "type": 1,
-        "target": "ReceiveMessage",
-        "arguments": [payload]
-    }
-
+    return {"type": 1, "target": "ReceiveMessage", "arguments": [payload]}

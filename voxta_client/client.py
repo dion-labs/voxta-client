@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import uuid
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Optional
 
 from voxta_client.constants import EventType
 from voxta_client.models import (
@@ -27,7 +27,7 @@ class VoxtaClient:
             on_message=self._handle_server_message, on_close=self._handle_close
         )
 
-        self.callbacks: Dict[str, List[Callable]] = {}
+        self.callbacks: dict[str, list[Callable]] = {}
         self.session_id: Optional[str] = None
         self.chat_id: Optional[str] = None
         self.assistant_id: Optional[str] = None
@@ -61,7 +61,7 @@ class VoxtaClient:
     def negotiate(self):
         return self.transport.negotiate()
 
-    async def connect(self, connection_token: str, cookies: Optional[Dict[str, str]] = None):
+    async def connect(self, connection_token: str, cookies: Optional[dict[str, str]] = None):
         await self.transport.connect(connection_token, cookies)
         await self.authenticate(connection_token)
 
@@ -75,9 +75,11 @@ class VoxtaClient:
 
     async def register_app(self, label: str = "Voxta Python Client"):
         self.logger.info(f"Registering app: {label}")
-        await self._send_client_message(ClientRegisterAppMessage(clientVersion="1.2.1", label=label))
+        await self._send_client_message(
+            ClientRegisterAppMessage(clientVersion="1.2.1", label=label)
+        )
 
-    async def start_chat(self, character_id: str, contexts: Optional[List[Dict[str, Any]]] = None):
+    async def start_chat(self, character_id: str, contexts: Optional[list[dict[str, Any]]] = None):
         invocation_id = str(uuid.uuid4())
         payload = {
             "type": 1,
@@ -165,11 +167,11 @@ class VoxtaClient:
         self,
         session_id: str,
         context_key: str,
-        contexts: Optional[List[Dict[str, Any]]] = None,
-        actions: Optional[List[Dict[str, Any]]] = None,
-        events: Optional[List[Dict[str, Any]]] = None,
-        set_flags: Optional[List[str]] = None,
-        enable_roles: Optional[Dict[str, bool]] = None,
+        contexts: Optional[list[dict[str, Any]]] = None,
+        actions: Optional[list[dict[str, Any]]] = None,
+        events: Optional[list[dict[str, Any]]] = None,
+        set_flags: Optional[list[str]] = None,
+        enable_roles: Optional[dict[str, bool]] = None,
     ):
         msg = ClientUpdateContextMessage(
             sessionId=session_id,
@@ -182,7 +184,7 @@ class VoxtaClient:
         )
         await self._send_client_message(msg)
 
-    async def _handle_server_message(self, message: Dict[str, Any]):
+    async def _handle_server_message(self, message: dict[str, Any]):
         msg_type = message.get("type")
         if msg_type == 6:  # Ping
             return
@@ -203,7 +205,7 @@ class VoxtaClient:
                     payload = args[0]
                     await self._process_voxta_event(payload)
 
-    async def _process_voxta_event(self, payload: Dict[str, Any]):
+    async def _process_voxta_event(self, payload: dict[str, Any]):
         event_type = payload.get("$type")
         if not event_type:
             return
@@ -257,7 +259,7 @@ class VoxtaClient:
         # Emit event
         await self._emit(event_type, payload)
 
-    async def _handle_sessions_updated(self, payload: Dict[str, Any]):
+    async def _handle_sessions_updated(self, payload: dict[str, Any]):
         sessions = payload.get("sessions", [])
         if sessions and not self.chat_id:
             target = next(
@@ -272,7 +274,7 @@ class VoxtaClient:
             await self.subscribe_to_chat(self.session_id, self.chat_id)
             await self._emit(EventType.READY, self.session_id)
 
-    async def _handle_chat_started(self, payload: Dict[str, Any]):
+    async def _handle_chat_started(self, payload: dict[str, Any]):
         new_session_id = payload.get("sessionId")
         new_chat_id = payload.get("chatId")
         if new_chat_id and new_chat_id != self._active_chat_id:
@@ -301,4 +303,3 @@ class VoxtaClient:
         Close the client connection.
         """
         await self.transport.close()
-

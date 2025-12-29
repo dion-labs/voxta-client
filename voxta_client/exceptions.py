@@ -20,4 +20,3 @@ class VoxtaProtocolError(VoxtaError):
     """Raised when a SignalR or Voxta protocol violation occurs."""
 
     pass
-

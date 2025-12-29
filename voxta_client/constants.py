@@ -41,4 +41,3 @@ class EventType:
 
     # Internal / Meta Events
     READY = "ready"
-

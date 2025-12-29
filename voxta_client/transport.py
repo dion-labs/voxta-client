@@ -1,13 +1,12 @@
 import asyncio
 import json
 import logging
-import uuid
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
 import requests
 import websockets
 
-from voxta_client.exceptions import VoxtaConnectionError, VoxtaProtocolError
+from voxta_client.exceptions import VoxtaConnectionError
 
 
 class VoxtaTransport:
@@ -20,18 +19,18 @@ class VoxtaTransport:
         self.logger = logger or logging.getLogger("VoxtaTransport")
         self.websocket: Optional[websockets.WebSocketClientProtocol] = None
         self.running = False
-        self._on_message_callback: Optional[Callable[[Dict[str, Any]], Any]] = None
+        self._on_message_callback: Optional[Callable[[dict[str, Any]], Any]] = None
         self._on_close_callback: Optional[Callable[[], Any]] = None
 
     def set_callbacks(
         self,
-        on_message: Callable[[Dict[str, Any]], Any],
+        on_message: Callable[[dict[str, Any]], Any],
         on_close: Optional[Callable[[], Any]] = None,
     ):
         self._on_message_callback = on_message
         self._on_close_callback = on_close
 
-    def negotiate(self) -> tuple[Optional[str], Optional[Dict[str, str]]]:
+    def negotiate(self) -> tuple[Optional[str], Optional[dict[str, str]]]:
         try:
             response = requests.post(f"{self.url}/hub/negotiate?negotiateVersion=1", timeout=10)
             if response.status_code != 200:
@@ -39,13 +38,13 @@ class VoxtaTransport:
                 return None, None
 
             data = response.json()
-            cookies = {k: v for k, v in response.cookies.items()}
+            cookies = dict(response.cookies.items())
             return data.get("connectionToken"), cookies
         except Exception as e:
             self.logger.error(f"Negotiation error: {e}")
             return None, None
 
-    async def connect(self, connection_token: str, cookies: Optional[Dict[str, str]] = None):
+    async def connect(self, connection_token: str, cookies: Optional[dict[str, str]] = None):
         ws_url = self.url.replace("http", "ws").replace("https", "wss") + "/hub"
         extra_headers = {}
         if cookies:
@@ -58,23 +57,21 @@ class VoxtaTransport:
         full_ws_url = f"{ws_url}?id={encoded_token}"
 
         try:
-            self.websocket = await websockets.connect(
-                full_ws_url, additional_headers=extra_headers
-            )
+            self.websocket = await websockets.connect(full_ws_url, additional_headers=extra_headers)
             self.running = True
             self.logger.info("WebSocket connected")
 
             # SignalR Handshake
             await self.send({"protocol": "json", "version": 1})
-            # Wait for handshake response (type 0 empty response in some SignalR versions, 
+            # Wait for handshake response (type 0 empty response in some SignalR versions,
             # or just skip to read loop)
-            
+
             asyncio.create_task(self._read_loop())
         except Exception as e:
             self.running = False
             raise VoxtaConnectionError(f"Failed to connect to {full_ws_url}: {e}") from e
 
-    async def send(self, payload: Dict[str, Any]):
+    async def send(self, payload: dict[str, Any]):
         if not self.websocket:
             self.logger.warning("Attempted to send message but WebSocket is not connected")
             return
@@ -125,4 +122,3 @@ class VoxtaTransport:
         if self.websocket:
             await self.websocket.close()
             self.websocket = None
-
