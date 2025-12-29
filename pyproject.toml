@@ -55,6 +55,7 @@ exclude = ["site*", "docs*"]
 [dependency-groups]
 dev = [
     "mkdocs-material>=9.7.1",
+    "twine>=6.2.0",
 ]
 
 [project.urls]
