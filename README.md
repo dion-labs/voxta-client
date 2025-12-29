@@ -7,6 +7,10 @@
 
 A core library for interacting with the [Voxta](https://voxta.ai) conversational AI platform using Python. This client enables real-time communication with Voxta characters using the SignalR protocol.
 
+### Compatibility
+- **Voxta Server**: Designed for and tested with **v1.2.1**.
+- **Python**: Supports **3.9+**.
+
 ## Features
 
 - **Real-time Interaction**: Full support for Voxta's SignalR/WebSockets protocol.
