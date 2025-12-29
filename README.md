@@ -88,7 +88,7 @@ async def main():
     await asyncio.sleep(10)
     
     # Clean up
-    client.running = False
+    await client.close()
     await connection_task
 
 if __name__ == "__main__":
