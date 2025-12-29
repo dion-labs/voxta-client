@@ -156,9 +156,7 @@ class VoxtaClient:
             "type": 1,
             "invocationId": invocation_id,
             "target": "SendMessage",
-            "arguments": [
-                {"$type": "subscribeToChat", "sessionId": session_id, "chatId": chat_id}
-            ],
+            "arguments": [{"$type": "subscribeToChat", "sessionId": session_id, "chatId": chat_id}],
         }
         self.logger.info(f"Subscribing to chat: {chat_id}")
         await self._send_json(payload)
@@ -343,9 +341,7 @@ class VoxtaClient:
                         parsed_message = json.loads(raw_msg)
                         await self._handle_server_message(parsed_message)
                     except json.JSONDecodeError as e:
-                        self.logger.error(
-                            f"Failed to decode message chunk: {raw_msg} | Error: {e}"
-                        )
+                        self.logger.error(f"Failed to decode message chunk: {raw_msg} | Error: {e}")
 
             except Exception as e:
                 self.logger.error(f"Error in read loop: {e}")
@@ -437,11 +433,7 @@ class VoxtaClient:
                         if not self.chat_id:
                             # Prefer the one we were previously on if it still exists
                             target = next(
-                                (
-                                    s
-                                    for s in sessions
-                                    if s.get("chatId") == self._active_chat_id
-                                ),
+                                (s for s in sessions if s.get("chatId") == self._active_chat_id),
                                 sessions[0],
                             )
 
@@ -452,8 +444,7 @@ class VoxtaClient:
                                 self.session_id = target.get("sessionId")
 
                             self.logger.info(
-                                f"Pinned to Chat: {self.chat_id} "
-                                f"(Using Session: {self.session_id})"
+                                f"Pinned to Chat: {self.chat_id} (Using Session: {self.session_id})"
                             )
                             await self.subscribe_to_chat(self.session_id, self.chat_id)
                             await self._emit("ready", self.session_id)

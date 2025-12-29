@@ -16,12 +16,13 @@ Usage:
     python examples/basic_chat.py
 """
 
+
 async def main():
     # 1. Initialize the client
     # Replace with your Voxta server URL if different
     voxta_url = os.getenv("VOXTA_URL", "http://localhost:5384")
     client = VoxtaClient(voxta_url)
-    
+
     # Set up event listeners
     @client.on("message")
     async def on_message(payload):
@@ -42,14 +43,14 @@ async def main():
     except Exception as e:
         print(f"Negotiation failed: {e}")
         return
-    
+
     # 3. Connect (runs the message loop in the background)
     connection_task = asyncio.create_task(client.connect(token, cookies))
-    
+
     # Wait for the client to be ready (connected and session pinned)
     ready_event = asyncio.Event()
     client.on("ready", lambda _: ready_event.set())
-    
+
     print("Connecting to Voxta...")
     try:
         # Wait up to 10 seconds for connection
@@ -66,7 +67,7 @@ async def main():
     message_text = "Hello! Tell me a short story."
     print(f"Sending message: '{message_text}'")
     await client.send_message(message_text)
-    
+
     # Keep the script running to receive the response
     print("Waiting for response (Press Ctrl+C to stop)...")
     try:
@@ -80,6 +81,6 @@ async def main():
         client.running = False
         await connection_task
 
+
 if __name__ == "__main__":
     asyncio.run(main())
-
