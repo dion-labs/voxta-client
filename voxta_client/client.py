@@ -301,7 +301,9 @@ class VoxtaClient:
             return
         if msg_type == 3:  # Completion
             if message.get("error"):
-                self.logger.error(f"Invocation failed: {message.get('error')}")
+                err_msg = message.get("error")
+                self.logger.error(f"Invocation failed: {err_msg}")
+                await self._emit(EventType.ERROR, {"message": err_msg})
             return
 
         if msg_type == 1:  # Invocation

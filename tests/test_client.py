@@ -124,10 +124,11 @@ async def test_connect_flow(mock_websocket):
     client = VoxtaClient("http://localhost:5384")
 
     # Mock websockets.connect context manager
-    # We need websockets.connect to be an async function that returns mock_websocket
     with patch("websockets.connect", new_callable=AsyncMock, return_value=mock_websocket):
         # Websocket as async context manager returns itself
         mock_websocket.__aenter__.return_value = mock_websocket
+        # Provide response for SignalR handshake
+        mock_websocket.recv.return_value = json.dumps({"type": 0}) + "\x1e"
 
         # We need to mock _read_loop because it's blocking
         with patch.object(client.transport, "_read_loop", new_callable=AsyncMock) as mock_read:
@@ -135,6 +136,9 @@ async def test_connect_flow(mock_websocket):
 
             # Verify handshake was sent
             assert {"protocol": "json", "version": 1} in mock_websocket.sent_messages
+
+            # Verify recv was called for handshake response
+            mock_websocket.recv.assert_called()
 
             # Verify authenticate was sent
             auth_msg = next(
@@ -253,22 +257,11 @@ async def test_handle_signalr_completion_error():
         error_data = data
 
     completion_msg = {"type": 3, "invocationId": "123", "error": "Method not found"}
-    await client._handle_server_message(completion_msg)
 
-    # In new architecture, completion errors are logged but not necessarily emitted as
-    # "error" events unless we specifically wanted them to be.
-    # My current implementation only logs them.
-    # Wait, looking at client.py:
-    # if msg_type == 3:  # Completion
-    #     if message.get("error"):
-    #         self.logger.error(f"Invocation failed: {message.get('error')}")
-    #     return
-
-    # Let's adjust the test to check logging instead, or update client.py to emit.
-    # I'll update client.py later if needed. For now, let's fix the test.
     with patch.object(client.logger, "error") as mock_log:
         await client._handle_server_message(completion_msg)
         mock_log.assert_called_with("Invocation failed: Method not found")
+        assert error_data["message"] == "Method not found"
 
 
 @pytest.mark.asyncio
@@ -318,3 +311,125 @@ async def test_handle_chats_sessions_updated(mock_websocket):
         if m.get("target") == "SendMessage" and m["arguments"][0]["$type"] == "subscribeToChat"
     )
     assert sent_subscribe is not None
+
+
+@pytest.mark.asyncio
+async def test_character_speech_request_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+    client.session_id = "test_session"
+    client.assistant_id = "test_assistant"
+
+    await client.character_speech_request()
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "characterSpeechRequest"
+    assert args["sessionId"] == "test_session"
+    assert args["characterId"] == "test_assistant"
+
+
+@pytest.mark.asyncio
+async def test_speech_playback_start_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+    client.session_id = "test_session"
+    client.last_message_id = "test_msg"
+
+    await client.speech_playback_start()
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "speechPlaybackStart"
+    assert args["sessionId"] == "test_session"
+    assert args["messageId"] == "test_msg"
+
+
+@pytest.mark.asyncio
+async def test_speech_playback_complete_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+    client.session_id = "test_session"
+    client.last_message_id = "test_msg"
+
+    await client.speech_playback_complete()
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "speechPlaybackComplete"
+    assert args["sessionId"] == "test_session"
+    assert args["messageId"] == "test_msg"
+
+
+@pytest.mark.asyncio
+async def test_inspect_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+
+    await client.inspect(session_id="session_123", enabled=False)
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "inspect"
+    assert args["sessionId"] == "session_123"
+    assert args["enabled"] is False
+
+
+@pytest.mark.asyncio
+async def test_pause_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+    client.session_id = "test_session"
+
+    await client.pause()
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "pause"
+    assert args["sessionId"] == "test_session"
+
+
+@pytest.mark.asyncio
+async def test_resume_chat_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+
+    await client.resume_chat(chat_id="chat_123")
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "resumeChat"
+    assert args["chatId"] == "chat_123"
+
+
+@pytest.mark.asyncio
+async def test_start_chat_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+
+    await client.start_chat(character_id="char_123", contexts=[{"key": "val"}])
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "startChat"
+    assert args["characterId"] == "char_123"
+    assert args["contexts"] == [{"key": "val"}]
+
+
+def test_model_to_dict_order():
+    from voxta_client.models import ClientSendMessage
+
+    msg = ClientSendMessage(sessionId="s", text="t")
+    d = msg.to_dict()
+
+    # The first key must be $type
+    keys = list(d.keys())
+    assert keys[0] == "$type"
+    assert d["$type"] == "send"
