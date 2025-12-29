@@ -10,7 +10,7 @@ A core library for interacting with the [Voxta](https://voxta.ai) conversational
 
 ## Documentation
 
-Full documentation is available at [dion-labs.github.io/voxta-client](https://dion-labs.github.io/voxta-client).
+Full documentation is available at [dion-labs.github.io/voxta-client](https://voxta.dionlabs.ai/).
 
 ### Compatibility
 - **Voxta Server**: Designed for and tested with **v1.2.1**.
