@@ -1,0 +1,11 @@
+:root {
+  /* Override Material's default Purple with your exact Dion Violet */
+  --md-primary-fg-color:        #4a00e0;
+  
+  /* Override Accent with your exact Electric Cyan */
+  --md-accent-fg-color:         #00f2ff;
+  
+  /* Make the background slightly darker (Void Black) */
+  --md-default-bg-color:        #050508;
+}
+

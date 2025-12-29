@@ -34,6 +34,8 @@ dev = [
     "pre-commit>=3.5.0",
     "pytest>=7.4.0",
     "pytest-asyncio>=0.21.0",
+    "mkdocs-material>=9.5.0",
+    "mkdocstrings[python]>=0.24.0",
 ]
 
 [tool.ruff]
