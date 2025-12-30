@@ -1521,7 +1521,7 @@ wheels = [
 
 [[package]]
 name = "voxta-client"
-version = "0.1.6"
+version = "0.1.7.dev1"
 source = { editable = "." }
 dependencies = [
     { name = "requests" },
