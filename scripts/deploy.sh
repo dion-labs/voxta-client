@@ -8,6 +8,15 @@ if [[ -n $(git status --porcelain) ]]; then
     exit 1
 fi
 
+# Run linter and formatter
+echo "Running linter and formatter..."
+uv run ruff check .
+uv run ruff format . --check
+
+# Run tests
+echo "Running tests..."
+uv run pytest
+
 RELEASE_TYPE=${1:-patch}
 
 # Clean the dist directory

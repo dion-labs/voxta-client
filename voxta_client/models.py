@@ -283,7 +283,7 @@ class ServerMissingResourcesErrorMessage(ServerMessage):
 
 @dataclass
 class ServerAudioFrameMessage(ServerMessage):
-    data: str # Base64 encoded?
+    data: str  # Base64 encoded?
     type_name: str = "audioFrame"
 
 
@@ -427,6 +427,7 @@ class ClientInspectMessage(ClientMessage):
     Message to toggle session debug state.
     WARNING: Effect unknown, no visible UI change or logged output confirmed.
     """
+
     sessionId: str  # noqa: N815
     enabled: bool = True
     type_name: str = "inspect"
@@ -458,15 +459,10 @@ class ClientPauseMessage(ClientMessage):
     Message to pause automatic continuation.
     WARNING: Effect unknown, AI often still responds to messages.
     """
+
     sessionId: str  # noqa: N815
     pause: bool = True
     type_name: str = "pauseChat"
-
-
-@dataclass
-class ClientStopChatMessage(ClientMessage):
-    chatId: str  # noqa: N815
-    type_name: str = "stopChat"
 
 
 @dataclass

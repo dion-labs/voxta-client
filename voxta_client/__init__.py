@@ -1,5 +1,5 @@
-from voxta_client.client import VoxtaClient
 from voxta_client.audio_client import VoxtaAudioClient
+from voxta_client.client import VoxtaClient
 from voxta_client.constants import EventType, ServiceType
 from voxta_client.exceptions import (
     VoxtaAuthError,

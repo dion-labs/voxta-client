@@ -4,7 +4,7 @@
 
 **Version:** 1.0
 **Last Updated:** 2025-12-30
-**Client Version:** 0.1.6
+**Client Version:** 0.2.0
 
 This guide provides a comprehensive overview of how to build applications that interact with the Voxta AI platform using the `voxta-client` Python library. It is inspired by the unofficial C# development guide but tailored for Python's async-first approach.
 

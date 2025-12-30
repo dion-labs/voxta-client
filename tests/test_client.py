@@ -213,7 +213,7 @@ async def test_action_event_emission():
 async def test_reply_generating_state():
     client = VoxtaClient("http://localhost:5384")
     assert client.is_thinking is False
-    
+
     await client._handle_server_message(wrap_signalr(REPLY_GENERATING_EVENT))
     assert client.is_thinking is True
 

@@ -5,14 +5,24 @@ from typing import Any, Callable, Optional
 
 from voxta_client.constants import EventType
 from voxta_client.models import (
+    ClientAddChatParticipantMessage,
     ClientAuthenticateMessage,
     ClientCharacterSpeechRequestMessage,
+    ClientDeleteMessageMessage,
+    ClientInspectAudioInputMessage,
     ClientInspectMessage,
     ClientInterruptMessage,
+    ClientLoadCharactersListMessage,
+    ClientLoadChatsListMessage,
+    ClientLoadScenariosListMessage,
     ClientMessage,
     ClientPauseMessage,
     ClientRegisterAppMessage,
+    ClientRemoveChatParticipantMessage,
+    ClientRequestSuggestionsMessage,
     ClientResumeChatMessage,
+    ClientRetryMessage,
+    ClientRevertMessage,
     ClientSendMessage,
     ClientSpeechPlaybackCompleteMessage,
     ClientSpeechPlaybackStartMessage,
@@ -20,20 +30,10 @@ from voxta_client.models import (
     ClientStopChatMessage,
     ClientSubscribeToChatMessage,
     ClientTriggerActionMessage,
+    ClientTypingEndMessage,
+    ClientTypingStartMessage,
     ClientUpdateContextMessage,
     ClientUpdateMessageMessage,
-    ClientDeleteMessageMessage,
-    ClientRevertMessage,
-    ClientRetryMessage,
-    ClientTypingStartMessage,
-    ClientTypingEndMessage,
-    ClientLoadCharactersListMessage,
-    ClientLoadScenariosListMessage,
-    ClientLoadChatsListMessage,
-    ClientAddChatParticipantMessage,
-    ClientRemoveChatParticipantMessage,
-    ClientRequestSuggestionsMessage,
-    ClientInspectAudioInputMessage,
 )
 from voxta_client.transport import VoxtaTransport
 
@@ -100,7 +100,7 @@ class VoxtaClient:
             if args:
                 # The actual Voxta message is usually the first argument
                 await self._emit("client_send", args[0])
-        
+
         await self.transport.send(payload)
 
     async def authenticate(self, _token: str):
@@ -128,41 +128,48 @@ class VoxtaClient:
         self.logger.info(f"Stopping chat: {chat_id}")
         await self._send_client_message(msg)
 
-    async def trigger_action(self, action: str, arguments: Optional[dict[str, Any]] = None, session_id: Optional[str] = None):
+    async def trigger_action(
+        self,
+        action: str,
+        arguments: Optional[dict[str, Any]] = None,
+        session_id: Optional[str] = None,
+    ):
         """
         Explicitly triggers an AI action/response.
         """
         target_session = session_id or self.session_id
-        if not target_session: return
+        if not target_session:
+            return
         msg = ClientTriggerActionMessage(
-            sessionId=target_session, 
-            messageId=str(uuid.uuid4()),
-            value=action,
-            arguments=arguments
+            sessionId=target_session, messageId=str(uuid.uuid4()), value=action, arguments=arguments
         )
         await self._send_client_message(msg)
 
     async def revert(self, session_id: Optional[str] = None):
         target_session = session_id or self.session_id
-        if not target_session: return
+        if not target_session:
+            return
         msg = ClientRevertMessage(sessionId=target_session)
         await self._send_client_message(msg)
 
     async def retry(self, session_id: Optional[str] = None):
         target_session = session_id or self.session_id
-        if not target_session: return
+        if not target_session:
+            return
         msg = ClientRetryMessage(sessionId=target_session)
         await self._send_client_message(msg)
 
     async def typing_start(self, session_id: Optional[str] = None):
         target_session = session_id or self.session_id
-        if not target_session: return
+        if not target_session:
+            return
         msg = ClientTypingStartMessage(sessionId=target_session)
         await self._send_client_message(msg)
 
     async def typing_end(self, session_id: Optional[str] = None):
         target_session = session_id or self.session_id
-        if not target_session: return
+        if not target_session:
+            return
         msg = ClientTypingEndMessage(sessionId=target_session)
         await self._send_client_message(msg)
 
@@ -172,43 +179,51 @@ class VoxtaClient:
     async def load_scenarios_list(self):
         await self._send_client_message(ClientLoadScenariosListMessage())
 
-    async def load_chats_list(self, character_id: Optional[str] = None, scenario_id: Optional[str] = None):
+    async def load_chats_list(
+        self, character_id: Optional[str] = None, scenario_id: Optional[str] = None
+    ):
         msg = ClientLoadChatsListMessage(characterId=character_id, scenarioId=scenario_id)
         await self._send_client_message(msg)
 
     async def add_chat_participant(self, character_id: str, session_id: Optional[str] = None):
         target_session = session_id or self.session_id
-        if not target_session: return
+        if not target_session:
+            return
         msg = ClientAddChatParticipantMessage(sessionId=target_session, characterId=character_id)
         await self._send_client_message(msg)
 
     async def remove_chat_participant(self, character_id: str, session_id: Optional[str] = None):
         target_session = session_id or self.session_id
-        if not target_session: return
+        if not target_session:
+            return
         msg = ClientRemoveChatParticipantMessage(sessionId=target_session, characterId=character_id)
         await self._send_client_message(msg)
 
     async def request_suggestions(self, session_id: Optional[str] = None):
         target_session = session_id or self.session_id
-        if not target_session: return
+        if not target_session:
+            return
         msg = ClientRequestSuggestionsMessage(sessionId=target_session)
         await self._send_client_message(msg)
 
     async def inspect_audio_input(self, enabled: bool, session_id: Optional[str] = None):
         target_session = session_id or self.session_id
-        if not target_session: return
+        if not target_session:
+            return
         msg = ClientInspectAudioInputMessage(sessionId=target_session, enabled=enabled)
         await self._send_client_message(msg)
 
     async def update_message(self, message_id: str, text: str, session_id: Optional[str] = None):
         target_session = session_id or self.session_id
-        if not target_session: return
+        if not target_session:
+            return
         msg = ClientUpdateMessageMessage(sessionId=target_session, messageId=message_id, text=text)
         await self._send_client_message(msg)
 
     async def delete_message(self, message_id: str, session_id: Optional[str] = None):
         target_session = session_id or self.session_id
-        if not target_session: return
+        if not target_session:
+            return
         msg = ClientDeleteMessageMessage(sessionId=target_session, messageId=message_id)
         await self._send_client_message(msg)
 
@@ -279,9 +294,7 @@ class VoxtaClient:
         target_session = session_id or self.session_id
 
         if not target_session:
-            self.logger.warning(
-                "Cannot send characterSpeechRequest: missing session_id"
-            )
+            self.logger.warning("Cannot send characterSpeechRequest: missing session_id")
             return
 
         msg = ClientCharacterSpeechRequestMessage(
@@ -300,9 +313,7 @@ class VoxtaClient:
         target_message = message_id or self.last_message_id
 
         if not target_session or not target_message:
-            self.logger.warning(
-                "Cannot send speechPlaybackStart: missing session_id or message_id"
-            )
+            self.logger.warning("Cannot send speechPlaybackStart: missing session_id or message_id")
             return
 
         msg = ClientSpeechPlaybackStartMessage(sessionId=target_session, messageId=target_message)
@@ -437,7 +448,7 @@ class VoxtaClient:
             chat_id = target.get("chatId")
             self._active_chat_id = chat_id
             self.session_id = target.get("sessionId")
-            
+
             self.logger.info(f"Pinned to Chat: {chat_id} (Session: {self.session_id})")
             await self.subscribe_to_chat(self.session_id, chat_id)
             await self._emit(EventType.READY, self.session_id)
@@ -446,7 +457,7 @@ class VoxtaClient:
         self.session_id = payload.get("sessionId")
         chat_id = payload.get("chatId")
         self._active_chat_id = chat_id
-        
+
         self.logger.info(f"Chat started: {chat_id} (Session: {self.session_id})")
         await self._emit(EventType.READY, self.session_id)
 

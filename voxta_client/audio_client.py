@@ -1,16 +1,10 @@
 import asyncio
-import logging
 import json
-import websockets
-from typing import Optional, Callable
-
-
+import logging
 import uuid
-import asyncio
-import logging
-import json
+from typing import Callable, Optional
+
 import websockets
-from typing import Optional, Callable, Any
 
 
 class VoxtaAudioClient:
@@ -30,7 +24,7 @@ class VoxtaAudioClient:
         Connect to the audio stream WebSocket and authenticate.
         """
         import urllib.parse
-        
+
         ws_url = self.url.replace("http", "ws").replace("https", "wss")
         encoded_token = urllib.parse.quote(connection_token)
         full_ws_url = f"{ws_url}/hub?id={encoded_token}"
@@ -42,11 +36,8 @@ class VoxtaAudioClient:
 
         self.logger.info(f"Connecting to audio client: {full_ws_url}")
         try:
-            self.websocket = await websockets.connect(
-                full_ws_url, 
-                additional_headers=extra_headers
-            )
-            
+            self.websocket = await websockets.connect(full_ws_url, additional_headers=extra_headers)
+
             # 1. SignalR Handshake
             await self.websocket.send(json.dumps({"protocol": "json", "version": 1}) + "\x1e")
             handshake_resp = await self.websocket.recv()
@@ -58,17 +49,19 @@ class VoxtaAudioClient:
                 "type": 1,
                 "invocationId": str(uuid.uuid4()),
                 "target": "SendMessage",
-                "arguments": [{
-                    "$type": "authenticate",
-                    "client": "Voxta.AudioClient.Python",
-                    "clientVersion": "1.2.1",
-                    "scope": ["role:app"],
-                    "capabilities": {
-                        "audioInput": "WebSocketStream",
-                        "audioOutput": "WebSocketStream",
-                        "acceptedAudioContentTypes": ["audio/pcm"]
+                "arguments": [
+                    {
+                        "$type": "authenticate",
+                        "client": "Voxta.AudioClient.Python",
+                        "clientVersion": "1.2.1",
+                        "scope": ["role:app"],
+                        "capabilities": {
+                            "audioInput": "WebSocketStream",
+                            "audioOutput": "WebSocketStream",
+                            "acceptedAudioContentTypes": ["audio/pcm"],
+                        },
                     }
-                }]
+                ],
             }
             await self.websocket.send(json.dumps(auth_msg) + "\x1e")
             self.logger.info("Audio client authentication sent")
@@ -115,4 +108,3 @@ class VoxtaAudioClient:
         if self.websocket:
             await self.websocket.close()
             self.websocket = None
-
