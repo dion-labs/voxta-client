@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "voxta-client"
-version = "0.2.0"
+version = "0.2.1.dev1"
 description = "A Python client library for interacting with the Voxta conversational AI platform via SignalR."
 readme = "README.md"
 authors = [{ name = "Dion Labs" }]
