@@ -18,5 +18,6 @@ A core library for interacting with the [Voxta](https://voxta.ai) conversational
 ## Documentation
 
 - [Getting Started](getting-started.md)
+- [Python Development Guide](PYTHON_DEVELOPMENT_GUIDE.md)
 - [Protocol Support Matrix](protocol.md)
 - [API Reference](api.md)

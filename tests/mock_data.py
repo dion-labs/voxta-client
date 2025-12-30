@@ -23,6 +23,12 @@ CHAT_STARTED_EVENT = {
     "$type": "chatStarted",
     "sessionId": "916f4059-1e81-983a-cb04-489176bcc680",
     "chatId": "chat_12345",
+    "characters": [
+        {
+            "id": "06c2046c-86d0-4e73-d5d8-0595022eb74d",
+            "name": "Apex",
+        }
+    ],
 }
 
 # update event (e.g. user message)

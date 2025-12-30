@@ -1,4 +1,5 @@
 from voxta_client.client import VoxtaClient
+from voxta_client.audio_client import VoxtaAudioClient
 from voxta_client.constants import EventType, ServiceType
 from voxta_client.exceptions import (
     VoxtaAuthError,
@@ -20,6 +21,7 @@ from voxta_client.models import (
 
 __all__ = [
     "VoxtaClient",
+    "VoxtaAudioClient",
     "EventType",
     "ServiceType",
     "VoxtaError",

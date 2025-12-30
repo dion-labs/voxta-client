@@ -92,6 +92,77 @@ class ClientUpdateContextMessage(ClientMessage):
 
 
 @dataclass
+class ClientInspectMessage(ClientMessage):
+    sessionId: str  # noqa: N815
+    enabled: bool = True
+    type_name: str = "inspect"
+
+
+@dataclass
+class ClientSubscribeToChatMessage(ClientMessage):
+    sessionId: str  # noqa: N815
+    chatId: str  # noqa: N815
+    type_name: str = "subscribeToChat"
+
+
+@dataclass
+class ClientResumeChatMessage(ClientMessage):
+    chatId: str  # noqa: N815
+    type_name: str = "resumeChat"
+
+
+@dataclass
+class ClientStartChatMessage(ClientMessage):
+    characterId: str  # noqa: N815
+    contexts: list[dict[str, Any]] = field(default_factory=list)
+    type_name: str = "startChat"
+
+
+@dataclass
+class ClientPauseMessage(ClientMessage):
+    sessionId: str  # noqa: N815
+    pause: bool = True
+    type_name: str = "pauseChat"
+
+
+@dataclass
+class ClientStopChatMessage(ClientMessage):
+    chatId: str  # noqa: N815
+    type_name: str = "stopChat"
+
+
+@dataclass
+class ClientInterruptMessage(ClientMessage):
+    sessionId: str  # noqa: N815
+    type_name: str = "interrupt"
+
+
+@dataclass
+class ClientSpeechPlaybackStartMessage(ClientMessage):
+    sessionId: str  # noqa: N815
+    messageId: str  # noqa: N815
+    startIndex: int = 0  # noqa: N815
+    endIndex: int = 0  # noqa: N815
+    duration: float = 0
+    type_name: str = "speechPlaybackStart"
+
+
+@dataclass
+class ClientSpeechPlaybackCompleteMessage(ClientMessage):
+    sessionId: str  # noqa: N815
+    messageId: str  # noqa: N815
+    type_name: str = "speechPlaybackComplete"
+
+
+@dataclass
+class ClientCharacterSpeechRequestMessage(ClientMessage):
+    sessionId: str  # noqa: N815
+    characterId: str  # noqa: N815
+    text: str = ""
+    type_name: str = "characterSpeechRequest"
+
+
+@dataclass
 class ClientRegisterAppMessage(ClientMessage):
     clientVersion: str  # noqa: N815
     label: str

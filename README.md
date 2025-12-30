@@ -11,6 +11,7 @@ A core library for interacting with the [Voxta](https://voxta.ai) conversational
 ## Documentation
 
 Full documentation is available at [https://voxta.dionlabs.ai/](https://voxta.dionlabs.ai/).
+See the [Changelog](CHANGELOG.md) for recent updates.
 
 ### Compatibility
 - **Voxta Server**: Designed for and tested with **v1.2.1**.

@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from tests.mock_data import (
+    ACTION_EVENT,
     CHAT_STARTED_EVENT,
     CHATS_SESSIONS_UPDATED_EVENT,
     ERROR_EVENT,
@@ -54,7 +55,8 @@ async def test_handle_welcome_updates_state():
     with patch.object(client, "register_app", new_callable=AsyncMock) as mock_reg:
         await client._handle_server_message(wrap_signalr(WELCOME_EVENT))
 
-        assert client.assistant_id == WELCOME_EVENT["assistant"]["id"]
+        # assistant_id is no longer tracked by the client
+        assert not hasattr(client, "assistant_id")
         mock_reg.assert_called_once()
 
 
@@ -65,7 +67,7 @@ async def test_handle_chat_started_updates_state():
     await client._handle_server_message(wrap_signalr(CHAT_STARTED_EVENT))
 
     assert client.session_id == CHAT_STARTED_EVENT["sessionId"]
-    assert client.chat_id == CHAT_STARTED_EVENT["chatId"]
+    # chat_id and assistant_id are no longer tracked by the client
 
 
 @pytest.mark.asyncio
@@ -177,6 +179,44 @@ async def test_state_transitions():
     await client._handle_server_message(wrap_signalr(INTERRUPT_SPEECH_EVENT))
     assert client.is_speaking is False
     assert client.is_thinking is False
+
+
+@pytest.mark.asyncio
+async def test_action_event_emission():
+    client = VoxtaClient("http://localhost:5384")
+    received_payload = None
+
+    @client.on("action")
+    async def on_action(payload):
+        nonlocal received_payload
+        received_payload = payload
+
+    await client._handle_server_message(wrap_signalr(ACTION_EVENT))
+    assert received_payload == ACTION_EVENT
+
+
+@pytest.mark.asyncio
+async def test_reply_generating_state():
+    client = VoxtaClient("http://localhost:5384")
+    assert client.is_thinking is False
+    
+    await client._handle_server_message(wrap_signalr(REPLY_GENERATING_EVENT))
+    assert client.is_thinking is True
+
+
+@pytest.mark.asyncio
+async def test_app_trigger_event_emission():
+    client = VoxtaClient("http://localhost:5384")
+    received_payload = None
+
+    @client.on("appTrigger")
+    async def on_trigger(payload):
+        nonlocal received_payload
+        received_payload = payload
+
+    trigger_event = {"$type": "appTrigger", "trigger": "test_trigger"}
+    await client._handle_server_message(wrap_signalr(trigger_event))
+    assert received_payload == trigger_event
 
 
 @pytest.mark.asyncio
@@ -302,7 +342,7 @@ async def test_handle_chats_sessions_updated(mock_websocket):
 
     # State should be updated from the first session in the list
     assert client.session_id == CHATS_SESSIONS_UPDATED_EVENT["sessions"][0]["sessionId"]
-    assert client.chat_id == CHATS_SESSIONS_UPDATED_EVENT["sessions"][0]["chatId"]
+    # chat_id and assistant_id are no longer tracked by the client
 
     # Verify subscribeToChat was sent
     sent_subscribe = next(
@@ -319,15 +359,15 @@ async def test_character_speech_request_payload(mock_websocket):
     client.transport.websocket = mock_websocket
     client.transport.running = True
     client.session_id = "test_session"
-    client.assistant_id = "test_assistant"
 
-    await client.character_speech_request()
+    await client.character_speech_request(character_id="test_assistant", text="test text")
 
     sent = mock_websocket.sent_messages[-1]
     args = sent["arguments"][0]
     assert args["$type"] == "characterSpeechRequest"
     assert args["sessionId"] == "test_session"
     assert args["characterId"] == "test_assistant"
+    assert args["text"] == "test text"
 
 
 @pytest.mark.asyncio
@@ -390,7 +430,7 @@ async def test_pause_payload(mock_websocket):
 
     sent = mock_websocket.sent_messages[-1]
     args = sent["arguments"][0]
-    assert args["$type"] == "pause"
+    assert args["$type"] == "pauseChat"
     assert args["sessionId"] == "test_session"
 
 
@@ -405,6 +445,20 @@ async def test_resume_chat_payload(mock_websocket):
     sent = mock_websocket.sent_messages[-1]
     args = sent["arguments"][0]
     assert args["$type"] == "resumeChat"
+    assert args["chatId"] == "chat_123"
+
+
+@pytest.mark.asyncio
+async def test_stop_chat_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+
+    await client.stop_chat(chat_id="chat_123")
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "stopChat"
     assert args["chatId"] == "chat_123"
 
 

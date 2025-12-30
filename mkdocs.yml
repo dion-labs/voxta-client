@@ -35,7 +35,9 @@ copyright: "© 2025 DionLabs.ai"
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
+  - Python Dev Guide: PYTHON_DEVELOPMENT_GUIDE.md
   - Protocol Support: protocol.md
+  - Changelog: ../CHANGELOG.md
   - API Reference: api.md
 
 markdown_extensions:

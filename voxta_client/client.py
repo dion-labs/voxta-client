@@ -6,9 +6,19 @@ from typing import Any, Callable, Optional
 from voxta_client.constants import EventType
 from voxta_client.models import (
     ClientAuthenticateMessage,
+    ClientCharacterSpeechRequestMessage,
+    ClientInspectMessage,
+    ClientInterruptMessage,
     ClientMessage,
+    ClientPauseMessage,
     ClientRegisterAppMessage,
+    ClientResumeChatMessage,
     ClientSendMessage,
+    ClientSpeechPlaybackCompleteMessage,
+    ClientSpeechPlaybackStartMessage,
+    ClientStartChatMessage,
+    ClientStopChatMessage,
+    ClientSubscribeToChatMessage,
     ClientUpdateContextMessage,
 )
 from voxta_client.transport import VoxtaTransport
@@ -29,8 +39,6 @@ class VoxtaClient:
 
         self.callbacks: dict[str, list[Callable]] = {}
         self.session_id: Optional[str] = None
-        self.chat_id: Optional[str] = None
-        self.assistant_id: Optional[str] = None
         self.is_speaking = False
         self.is_thinking = False
         self.last_message_id: Optional[str] = None
@@ -67,7 +75,19 @@ class VoxtaClient:
 
     async def _send_client_message(self, message: ClientMessage):
         invocation_id = str(uuid.uuid4())
-        await self.transport.send(message.to_signalr_invocation(invocation_id))
+        payload = message.to_signalr_invocation(invocation_id)
+        await self._send_raw(payload)
+
+    async def _send_raw(self, payload: dict[str, Any]):
+        # Emit an event for outgoing messages so listeners (like the proxy) can track them
+        # SignalR messages of type 1 are Invocations
+        if payload.get("type") == 1:
+            args = payload.get("arguments", [])
+            if args:
+                # The actual Voxta message is usually the first argument
+                await self._emit("client_send", args[0])
+        
+        await self.transport.send(payload)
 
     async def authenticate(self, _token: str):
         self.logger.info("Authenticating...")
@@ -80,50 +100,29 @@ class VoxtaClient:
         )
 
     async def start_chat(self, character_id: str, contexts: Optional[list[dict[str, Any]]] = None):
-        invocation_id = str(uuid.uuid4())
-        payload = {
-            "type": 1,
-            "invocationId": invocation_id,
-            "target": "SendMessage",
-            "arguments": [
-                {"$type": "startChat", "characterId": character_id, "contexts": contexts or []}
-            ],
-        }
+        msg = ClientStartChatMessage(characterId=character_id, contexts=contexts or [])
         self.logger.info(f"Starting chat with character: {character_id}")
-        await self.transport.send(payload)
+        await self._send_client_message(msg)
 
     async def resume_chat(self, chat_id: str):
-        invocation_id = str(uuid.uuid4())
-        payload = {
-            "type": 1,
-            "invocationId": invocation_id,
-            "target": "SendMessage",
-            "arguments": [{"$type": "resumeChat", "chatId": chat_id}],
-        }
+        msg = ClientResumeChatMessage(chatId=chat_id)
         self.logger.info(f"Resuming chat: {chat_id}")
-        await self.transport.send(payload)
+        await self._send_client_message(msg)
+
+    async def stop_chat(self, chat_id: str):
+        msg = ClientStopChatMessage(chatId=chat_id)
+        self.logger.info(f"Stopping chat: {chat_id}")
+        await self._send_client_message(msg)
 
     async def subscribe_to_chat(self, session_id: str, chat_id: str):
-        invocation_id = str(uuid.uuid4())
-        payload = {
-            "type": 1,
-            "invocationId": invocation_id,
-            "target": "SendMessage",
-            "arguments": [{"$type": "subscribeToChat", "sessionId": session_id, "chatId": chat_id}],
-        }
+        msg = ClientSubscribeToChatMessage(sessionId=session_id, chatId=chat_id)
         self.logger.info(f"Subscribing to chat: {chat_id}")
-        await self.transport.send(payload)
+        await self._send_client_message(msg)
 
     async def inspect(self, session_id: str, enabled: bool = True):
-        invocation_id = str(uuid.uuid4())
-        payload = {
-            "type": 1,
-            "invocationId": invocation_id,
-            "target": "SendMessage",
-            "arguments": [{"$type": "inspect", "sessionId": session_id, "enabled": enabled}],
-        }
+        msg = ClientInspectMessage(sessionId=session_id, enabled=enabled)
         self.logger.info(f"Sending inspect: session={session_id}, enabled={enabled}")
-        await self.transport.send(payload)
+        await self._send_client_message(msg)
 
     async def send_message(
         self,
@@ -152,58 +151,38 @@ class VoxtaClient:
         target_session = session_id or self.session_id
         if not target_session:
             return
-        invocation_id = str(uuid.uuid4())
-        payload = {
-            "type": 1,
-            "invocationId": invocation_id,
-            "target": "SendMessage",
-            "arguments": [{"$type": "interrupt", "sessionId": target_session}],
-        }
-        await self.transport.send(payload)
+        msg = ClientInterruptMessage(sessionId=target_session)
+        await self._send_client_message(msg)
 
-    async def pause(self, session_id: Optional[str] = None):
+    async def pause(self, session_id: Optional[str] = None, pause: bool = True):
         target_session = session_id or self.session_id
         if not target_session:
             return
-        invocation_id = str(uuid.uuid4())
-        payload = {
-            "type": 1,
-            "invocationId": invocation_id,
-            "target": "SendMessage",
-            "arguments": [{"$type": "pause", "sessionId": target_session}],
-        }
-        await self.transport.send(payload)
+        msg = ClientPauseMessage(sessionId=target_session, pause=pause)
+        await self._send_client_message(msg)
 
     async def character_speech_request(
-        self, session_id: Optional[str] = None, character_id: Optional[str] = None
+        self,
+        character_id: str,
+        session_id: Optional[str] = None,
+        text: str = "",
     ):
         """
         Sends characterSpeechRequest to the server to ask the character to start/resume speaking.
         """
         target_session = session_id or self.session_id
-        target_character = character_id or self.assistant_id
 
-        if not target_session or not target_character:
+        if not target_session:
             self.logger.warning(
-                "Cannot send characterSpeechRequest: missing session_id or character_id"
+                "Cannot send characterSpeechRequest: missing session_id"
             )
             return
 
-        invocation_id = str(uuid.uuid4())
-        payload = {
-            "type": 1,
-            "invocationId": invocation_id,
-            "target": "SendMessage",
-            "arguments": [
-                {
-                    "$type": "characterSpeechRequest",
-                    "sessionId": target_session,
-                    "characterId": target_character,
-                }
-            ],
-        }
-        self.logger.info(f"Sending characterSpeechRequest for character: {target_character}")
-        await self.transport.send(payload)
+        msg = ClientCharacterSpeechRequestMessage(
+            sessionId=target_session, characterId=character_id, text=text
+        )
+        self.logger.info(f"Sending characterSpeechRequest for character: {character_id}")
+        await self._send_client_message(msg)
 
     async def speech_playback_start(
         self, session_id: Optional[str] = None, message_id: Optional[str] = None
@@ -220,24 +199,9 @@ class VoxtaClient:
             )
             return
 
-        invocation_id = str(uuid.uuid4())
-        payload = {
-            "type": 1,
-            "invocationId": invocation_id,
-            "target": "SendMessage",
-            "arguments": [
-                {
-                    "$type": "speechPlaybackStart",
-                    "sessionId": target_session,
-                    "messageId": target_message,
-                    "startIndex": 0,
-                    "endIndex": 0,
-                    "duration": 0,
-                }
-            ],
-        }
+        msg = ClientSpeechPlaybackStartMessage(sessionId=target_session, messageId=target_message)
         self.logger.info(f"Sending speechPlaybackStart for message: {target_message}")
-        await self.transport.send(payload)
+        await self._send_client_message(msg)
 
     async def speech_playback_complete(
         self, session_id: Optional[str] = None, message_id: Optional[str] = None
@@ -254,21 +218,11 @@ class VoxtaClient:
             )
             return
 
-        invocation_id = str(uuid.uuid4())
-        payload = {
-            "type": 1,
-            "invocationId": invocation_id,
-            "target": "SendMessage",
-            "arguments": [
-                {
-                    "$type": "speechPlaybackComplete",
-                    "sessionId": target_session,
-                    "messageId": target_message,
-                }
-            ],
-        }
+        msg = ClientSpeechPlaybackCompleteMessage(
+            sessionId=target_session, messageId=target_message
+        )
         self.logger.info(f"Sending speechPlaybackComplete for message: {target_message}")
-        await self.transport.send(payload)
+        await self._send_client_message(msg)
 
     async def update_context(
         self,
@@ -303,7 +257,7 @@ class VoxtaClient:
             if message.get("error"):
                 err_msg = message.get("error")
                 self.logger.error(f"Invocation failed: {err_msg}")
-                await self._emit(EventType.ERROR, {"message": err_msg})
+                await self._emit(EventType.ERROR, {"$type": EventType.ERROR, "message": err_msg})
             return
 
         if msg_type == 1:  # Invocation
@@ -339,7 +293,6 @@ class VoxtaClient:
 
         # Internal state management
         if event_type == EventType.WELCOME:
-            self.assistant_id = payload.get("assistant", {}).get("id")
             await self.register_app()
         elif event_type == EventType.CHATS_SESSIONS_UPDATED:
             await self._handle_sessions_updated(payload)
@@ -370,27 +323,26 @@ class VoxtaClient:
 
     async def _handle_sessions_updated(self, payload: dict[str, Any]):
         sessions = payload.get("sessions", [])
-        if sessions and not self.chat_id:
+        if sessions:
             target = next(
                 (s for s in sessions if s.get("chatId") == self._active_chat_id),
                 sessions[0],
             )
-            self.chat_id = target.get("chatId")
-            self._active_chat_id = self.chat_id
-            if not self.session_id:
-                self.session_id = target.get("sessionId")
-            self.logger.info(f"Pinned to Chat: {self.chat_id}")
-            await self.subscribe_to_chat(self.session_id, self.chat_id)
+            chat_id = target.get("chatId")
+            self._active_chat_id = chat_id
+            self.session_id = target.get("sessionId")
+            
+            self.logger.info(f"Pinned to Chat: {chat_id} (Session: {self.session_id})")
+            await self.subscribe_to_chat(self.session_id, chat_id)
             await self._emit(EventType.READY, self.session_id)
 
     async def _handle_chat_started(self, payload: dict[str, Any]):
-        new_session_id = payload.get("sessionId")
-        new_chat_id = payload.get("chatId")
-        if new_chat_id and new_chat_id != self._active_chat_id:
-            self.session_id = new_session_id
-            self.chat_id = new_chat_id
-            self._active_chat_id = new_chat_id
-            await self._emit(EventType.READY, self.session_id)
+        self.session_id = payload.get("sessionId")
+        chat_id = payload.get("chatId")
+        self._active_chat_id = chat_id
+        
+        self.logger.info(f"Chat started: {chat_id} (Session: {self.session_id})")
+        await self._emit(EventType.READY, self.session_id)
 
     async def _emit(self, event_name: str, data: Any):
         if event_name in self.callbacks:
