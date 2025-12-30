@@ -120,11 +120,9 @@ All client-to-server messages follow the SignalR Invocation format:
 | `interrupt` | Stops current AI speech playback. |
 | `pause` | Stops current AI text generation/thinking. |
 | `updateContext` | Injects knowledge, flags, or allowed actions. |
-| `sendSecret` | Sends a hidden message to the AI. |
-| `sendNote` | Sends a private note/instruction to the AI. |
-| `sendInstructions` | Sends system-level instructions. |
+| `updateMessage` | Modifies a previously sent message. |
+| `deleteMessage` | Removes a message from history. |
 | `triggerReply` | Explicitly requests the AI to respond. |
-| `loadChat` | Restores a specific chat from history. |
 
 ---
 
@@ -247,6 +245,30 @@ To achieve natural interaction, use the playback sync methods:
 2. AI sends `speechPlaybackStart`.
 3. Client plays audio.
 4. Client sends `speechPlaybackComplete` to tell AI the "turn" is over.
+
+---
+
+## 8. Known Protocol Gaps / Under Investigation
+
+The following methods and features are currently documented in unofficial protocol guides but have been removed from the primary `voxta-client` due to non-functional status or unrecognized discriminators on the current server version. They are preserved here for research and future investigation.
+
+| Feature | Method | Current Status / Note |
+|---------|--------|-----------------------|
+| **Secret Messages** | `sendSecret` | Discriminator unrecognized by server. |
+| **Private Notes** | `sendNote` | Unrecognized. AI likely expects standard `send` with `/note` prefix. |
+| **System Instructions** | `sendInstructions` | Discriminator unrecognized by server. |
+| **User Action Request** | `requestUserAction` | Non-functional; server does not process. |
+| **Load Chat** | `loadChat` | Discriminator unrecognized by server. |
+| **Delete Chat** | `deleteChat` | Server error: `LocalId is empty`. Mapping mismatch. |
+| **List Resources** | `listResources` | Missing `resources` property on server side or mismatch in model. |
+| **Deploy Resource** | `deployResource` | Untested/Complex payload. |
+| **Update Chat** | `updateChat` | Non-functional/Untested. |
+| **Update Document** | `updateDocument` | Non-functional/Untested. |
+| **Unsubscribe From** | `unsubscribeFrom` | Non-functional/Untested. |
+| **Fulfill Interaction** | `fulfillUserInteraction` | Non-functional/Untested. |
+| **Run Script** | `runScript` | Non-functional/Untested. |
+| **Trigger Script Event** | `triggerScriptEvent` | Non-functional/Untested. |
+| **App Trigger Complete** | `appTriggerComplete` | Non-functional/Untested. |
 
 ---
 

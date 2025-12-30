@@ -154,6 +154,20 @@ async def test_connect_flow(mock_websocket):
 
 
 @pytest.mark.asyncio
+async def test_register_app_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+
+    await client.register_app(label="Test App")
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "registerApp"
+    assert args["label"] == "Test App"
+
+
+@pytest.mark.asyncio
 async def test_state_transitions():
     client = VoxtaClient("http://localhost:5384")
 
@@ -475,6 +489,205 @@ async def test_start_chat_payload(mock_websocket):
     assert args["$type"] == "startChat"
     assert args["characterId"] == "char_123"
     assert args["contexts"] == [{"key": "val"}]
+
+
+@pytest.mark.asyncio
+async def test_trigger_action_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+    client.session_id = "test_session"
+
+    await client.trigger_action(action="triggerReply")
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "triggerAction"
+    assert args["sessionId"] == "test_session"
+    assert args["value"] == "triggerReply"
+    assert "messageId" in args
+
+
+@pytest.mark.asyncio
+async def test_revert_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+    client.session_id = "test_session"
+
+    await client.revert()
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "revert"
+    assert args["sessionId"] == "test_session"
+
+
+@pytest.mark.asyncio
+async def test_retry_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+    client.session_id = "test_session"
+
+    await client.retry()
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "retry"
+    assert args["sessionId"] == "test_session"
+
+
+@pytest.mark.asyncio
+async def test_typing_start_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+    client.session_id = "test_session"
+
+    await client.typing_start()
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "typingStart"
+    assert args["sessionId"] == "test_session"
+
+
+@pytest.mark.asyncio
+async def test_typing_end_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+    client.session_id = "test_session"
+
+    await client.typing_end()
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "typingEnd"
+    assert args["sessionId"] == "test_session"
+    assert args["sent"] is True
+
+
+@pytest.mark.asyncio
+async def test_load_characters_list_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+
+    await client.load_characters_list()
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "loadCharactersList"
+
+
+@pytest.mark.asyncio
+async def test_load_scenarios_list_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+
+    await client.load_scenarios_list()
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "loadScenariosList"
+
+
+@pytest.mark.asyncio
+async def test_load_chats_list_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+
+    await client.load_chats_list(character_id="char_123")
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "loadChatsList"
+    assert args["characterId"] == "char_123"
+
+
+@pytest.mark.asyncio
+async def test_add_chat_participant_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+    client.session_id = "test_session"
+
+    await client.add_chat_participant(character_id="char_123")
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "addChatParticipant"
+    assert args["sessionId"] == "test_session"
+    assert args["characterId"] == "char_123"
+
+
+@pytest.mark.asyncio
+async def test_remove_chat_participant_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+    client.session_id = "test_session"
+
+    await client.remove_chat_participant(character_id="char_123")
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "removeChatParticipant"
+    assert args["sessionId"] == "test_session"
+    assert args["characterId"] == "char_123"
+
+
+@pytest.mark.asyncio
+async def test_inspect_audio_input_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+    client.session_id = "test_session"
+
+    await client.inspect_audio_input(enabled=True)
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "inspectAudioInput"
+    assert args["sessionId"] == "test_session"
+    assert args["enabled"] is True
+
+
+@pytest.mark.asyncio
+async def test_update_message_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+    client.session_id = "test_session"
+
+    await client.update_message(message_id="msg_123", text="updated text")
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "update"
+    assert args["sessionId"] == "test_session"
+    assert args["messageId"] == "msg_123"
+    assert args["text"] == "updated text"
+
+
+@pytest.mark.asyncio
+async def test_delete_message_payload(mock_websocket):
+    client = VoxtaClient("http://localhost:5384")
+    client.transport.websocket = mock_websocket
+    client.transport.running = True
+    client.session_id = "test_session"
+
+    await client.delete_message(message_id="msg_123")
+
+    sent = mock_websocket.sent_messages[-1]
+    args = sent["arguments"][0]
+    assert args["$type"] == "deleteMessage"
+    assert args["sessionId"] == "test_session"
+    assert args["messageId"] == "msg_123"
 
 
 def test_model_to_dict_order():

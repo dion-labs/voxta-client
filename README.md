@@ -36,15 +36,22 @@ This client implements the Voxta SignalR protocol. Below is the current support 
 | **Messaging** | Start Chat | `startChat` | ✅ Supported |
 | | Resume Chat | `resumeChat` | ✅ Supported |
 | | Send Message | `send` | ✅ Supported |
-| | Character Speech Req | `characterSpeechRequest` | ✅ Supported |
+| | Update Message| `update` | ✅ Supported |
+| | Delete Message| `deleteMessage` | ✅ Supported |
+| | Trigger Action | `triggerAction` | ✅ Supported |
+| | Revert / Retry | `revert / retry` | ✅ Supported |
+| | Typing State | `typingStart/End` | ✅ Supported |
+| **Discovery** | List Characters | `loadCharactersList` | ✅ Supported |
+| | List Scenarios | `loadScenariosList` | ✅ Supported |
+| | List Chats | `loadChatsList` | ✅ Supported |
+| | Participant Mgmt| `add/removeChatParticipant` | ✅ Supported |
 | **Control** | Interrupt | `interrupt` | ✅ Supported |
 | | Pause | `pause` | ✅ Supported |
 | | Inspect Session | `inspect` | ✅ Supported |
 | **Context** | Update Context | `updateContext` | ✅ Supported |
-| | Actions/Events | `updateContext` | ✅ Supported |
-| | Role Management | `enableRoles` | ✅ Supported |
 | **Media** | Playback Sync | `speechPlaybackStart/Complete` | ✅ Supported |
-| | Audio Streaming | `WebSocketStream` (PCM) | ❌ Not Planned |
+| | Audio Streaming | `WebSocketStream` (PCM) | ✅ Supported |
+| | Audio Debugging | `inspectAudioInput` | ✅ Supported |
 | | Vision / Images | `visionCapture` | ❌ Not Planned |
 
 ## Installation

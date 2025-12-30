@@ -11,14 +11,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`VoxtaAudioClient`**: A dedicated client for handling raw binary PCM audio streaming (16-bit, 16kHz).
 - Support for `WebSocketStream` audio input and output capabilities.
 - New `audio_client.py` module for decoupled audio connection management.
-- `stop_chat` method to `VoxtaClient`.
+- New messaging methods: `update_message`, `delete_message`, `revert`, `retry`, `trigger_action`.
+- Session state signaling: `typing_start`, `typing_end`.
+- Discovery methods: `load_characters_list`, `load_scenarios_list`, `load_chats_list`.
+- Participant management: `add_chat_participant`, `remove_chat_participant`.
+- Debugging: `inspect_audio_input` (toggles server-side audio visualization).
+- Comprehensive support for all incoming server events (mapped to `EventType` and models).
 - Enhanced `deploy.sh` with clean git status check and automatic documentation versioning.
 - Support for minor version releases in `deploy.sh`.
 
 ### Changed
 - Refactored `VoxtaClient` to be fully vanilla and "audio-unaware" by default, improving modularity.
 - `VoxtaClient.connect` and `authenticate` now use default capabilities unless explicitly extended.
-- Improved test coverage for `action`, `interruptSpeech`, `appTrigger`, and `replyGenerating` events.
+- Improved test coverage for all new verified protocol methods.
+- Renamed `trigger_reply` to `trigger_action` to align with protocol discriminators.
+
+### Fixed
+- Missing `sent` property in `typing_end` message.
+- Missing `messageId` and `value` properties in `trigger_action` message.
+- Model ordering for SignalR compatibility (ensuring `$type` is the first key).
 
 ## [0.1.6] - 2025-12-30
 

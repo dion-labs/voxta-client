@@ -19,7 +19,21 @@ from voxta_client.models import (
     ClientStartChatMessage,
     ClientStopChatMessage,
     ClientSubscribeToChatMessage,
+    ClientTriggerActionMessage,
     ClientUpdateContextMessage,
+    ClientUpdateMessageMessage,
+    ClientDeleteMessageMessage,
+    ClientRevertMessage,
+    ClientRetryMessage,
+    ClientTypingStartMessage,
+    ClientTypingEndMessage,
+    ClientLoadCharactersListMessage,
+    ClientLoadScenariosListMessage,
+    ClientLoadChatsListMessage,
+    ClientAddChatParticipantMessage,
+    ClientRemoveChatParticipantMessage,
+    ClientRequestSuggestionsMessage,
+    ClientInspectAudioInputMessage,
 )
 from voxta_client.transport import VoxtaTransport
 
@@ -114,12 +128,100 @@ class VoxtaClient:
         self.logger.info(f"Stopping chat: {chat_id}")
         await self._send_client_message(msg)
 
+    async def trigger_action(self, action: str, arguments: Optional[dict[str, Any]] = None, session_id: Optional[str] = None):
+        """
+        Explicitly triggers an AI action/response.
+        """
+        target_session = session_id or self.session_id
+        if not target_session: return
+        msg = ClientTriggerActionMessage(
+            sessionId=target_session, 
+            messageId=str(uuid.uuid4()),
+            value=action,
+            arguments=arguments
+        )
+        await self._send_client_message(msg)
+
+    async def revert(self, session_id: Optional[str] = None):
+        target_session = session_id or self.session_id
+        if not target_session: return
+        msg = ClientRevertMessage(sessionId=target_session)
+        await self._send_client_message(msg)
+
+    async def retry(self, session_id: Optional[str] = None):
+        target_session = session_id or self.session_id
+        if not target_session: return
+        msg = ClientRetryMessage(sessionId=target_session)
+        await self._send_client_message(msg)
+
+    async def typing_start(self, session_id: Optional[str] = None):
+        target_session = session_id or self.session_id
+        if not target_session: return
+        msg = ClientTypingStartMessage(sessionId=target_session)
+        await self._send_client_message(msg)
+
+    async def typing_end(self, session_id: Optional[str] = None):
+        target_session = session_id or self.session_id
+        if not target_session: return
+        msg = ClientTypingEndMessage(sessionId=target_session)
+        await self._send_client_message(msg)
+
+    async def load_characters_list(self):
+        await self._send_client_message(ClientLoadCharactersListMessage())
+
+    async def load_scenarios_list(self):
+        await self._send_client_message(ClientLoadScenariosListMessage())
+
+    async def load_chats_list(self, character_id: Optional[str] = None, scenario_id: Optional[str] = None):
+        msg = ClientLoadChatsListMessage(characterId=character_id, scenarioId=scenario_id)
+        await self._send_client_message(msg)
+
+    async def add_chat_participant(self, character_id: str, session_id: Optional[str] = None):
+        target_session = session_id or self.session_id
+        if not target_session: return
+        msg = ClientAddChatParticipantMessage(sessionId=target_session, characterId=character_id)
+        await self._send_client_message(msg)
+
+    async def remove_chat_participant(self, character_id: str, session_id: Optional[str] = None):
+        target_session = session_id or self.session_id
+        if not target_session: return
+        msg = ClientRemoveChatParticipantMessage(sessionId=target_session, characterId=character_id)
+        await self._send_client_message(msg)
+
+    async def request_suggestions(self, session_id: Optional[str] = None):
+        target_session = session_id or self.session_id
+        if not target_session: return
+        msg = ClientRequestSuggestionsMessage(sessionId=target_session)
+        await self._send_client_message(msg)
+
+    async def inspect_audio_input(self, enabled: bool, session_id: Optional[str] = None):
+        target_session = session_id or self.session_id
+        if not target_session: return
+        msg = ClientInspectAudioInputMessage(sessionId=target_session, enabled=enabled)
+        await self._send_client_message(msg)
+
+    async def update_message(self, message_id: str, text: str, session_id: Optional[str] = None):
+        target_session = session_id or self.session_id
+        if not target_session: return
+        msg = ClientUpdateMessageMessage(sessionId=target_session, messageId=message_id, text=text)
+        await self._send_client_message(msg)
+
+    async def delete_message(self, message_id: str, session_id: Optional[str] = None):
+        target_session = session_id or self.session_id
+        if not target_session: return
+        msg = ClientDeleteMessageMessage(sessionId=target_session, messageId=message_id)
+        await self._send_client_message(msg)
+
     async def subscribe_to_chat(self, session_id: str, chat_id: str):
         msg = ClientSubscribeToChatMessage(sessionId=session_id, chatId=chat_id)
         self.logger.info(f"Subscribing to chat: {chat_id}")
         await self._send_client_message(msg)
 
     async def inspect(self, session_id: str, enabled: bool = True):
+        """
+        Toggle session debug state.
+        NOTE: Effect unknown, no visible UI change or logged output confirmed.
+        """
         msg = ClientInspectMessage(sessionId=session_id, enabled=enabled)
         self.logger.info(f"Sending inspect: session={session_id}, enabled={enabled}")
         await self._send_client_message(msg)
@@ -155,6 +257,10 @@ class VoxtaClient:
         await self._send_client_message(msg)
 
     async def pause(self, session_id: Optional[str] = None, pause: bool = True):
+        """
+        Pause automatic continuation.
+        NOTE: Effect unknown, AI often still responds to messages.
+        """
         target_session = session_id or self.session_id
         if not target_session:
             return
