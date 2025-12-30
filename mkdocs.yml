@@ -37,8 +37,13 @@ nav:
   - Getting Started: getting-started.md
   - Python Dev Guide: PYTHON_DEVELOPMENT_GUIDE.md
   - Protocol Support: protocol.md
-  - Changelog: ../CHANGELOG.md
-  - API Reference: api.md
+  - Changelog: changelog.md
+  - API Reference:
+      - Overview: api.md
+      - Client: api/client.md
+      - Models: api/models.md
+      - Constants: api/constants.md
+  - Contributing: contributing.md
 
 markdown_extensions:
   - admonition
@@ -47,6 +52,7 @@ markdown_extensions:
       line_spans: __span
       pygments_lang_class: true
   - pymdownx.inlinehilite
-  - pymdownx.snippets
+  - pymdownx.snippets:
+      base_path: ["."]
   - pymdownx.superfences
   - tables
