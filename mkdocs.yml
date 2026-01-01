@@ -42,6 +42,7 @@ nav:
   - API Reference:
       - Overview: api.md
       - Client: api/client.md
+      - Audio Client: api/audio_client.md
       - Models: api/models.md
       - Constants: api/constants.md
   - Contributing: contributing.md

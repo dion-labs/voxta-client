@@ -60,11 +60,18 @@ class VoxtaClient:
 
     @property
     def running(self) -> bool:
+        """
+        Check if the client is currently connected and running.
+        """
         return self.transport.running
 
     def on(self, event_name: str, callback: Optional[Callable] = None) -> Any:
         """
         Register a callback for a specific event. Can be used as a decorator.
+
+        Args:
+            event_name: The name of the event to listen for (see EventType).
+            callback: The callback function to execute. If None, returns a decorator.
         """
         if callback is not None:
             if event_name not in self.callbacks:
@@ -81,13 +88,26 @@ class VoxtaClient:
         return decorator
 
     def negotiate(self):
+        """
+        Perform the initial SignalR HTTP negotiation.
+        """
         return self.transport.negotiate()
 
     async def connect(self, connection_token: str, cookies: Optional[dict[str, str]] = None):
+        """
+        Establish the SignalR connection and authenticate.
+
+        Args:
+            connection_token: The SignalR connection token obtained from negotiation.
+            cookies: Optional cookies to include in the connection request.
+        """
         await self.transport.connect(connection_token, cookies)
         await self.authenticate(connection_token)
 
     async def _send_client_message(self, message: ClientMessage):
+        """
+        Internal method to wrap and send a Voxta message over SignalR.
+        """
         invocation_id = str(uuid.uuid4())
         payload = message.to_signalr_invocation(invocation_id)
         await self._send_raw(payload)
@@ -97,33 +117,65 @@ class VoxtaClient:
         # SignalR messages of type 1 are Invocations
         if payload.get("type") == 1:
             args = payload.get("arguments", [])
+            invocation_id = payload.get("invocationId")
             if args:
                 # The actual Voxta message is usually the first argument
-                await self._emit("client_send", args[0])
+                data = args[0]
+                if isinstance(data, dict) and invocation_id:
+                    data["invocationId"] = invocation_id
+                await self._emit("client_send", data)
 
         await self.transport.send(payload)
 
     async def authenticate(self, _token: str):
+        """
+        Send the initial authentication message to the server.
+        """
         self.logger.info("Authenticating...")
         await self._send_client_message(ClientAuthenticateMessage())
 
     async def register_app(self, label: str = "Voxta Python Client"):
+        """
+        Register the application with the Voxta server.
+
+        Args:
+            label: A human-readable label for this client.
+        """
         self.logger.info(f"Registering app: {label}")
         await self._send_client_message(
             ClientRegisterAppMessage(clientVersion="1.2.1", label=label)
         )
 
     async def start_chat(self, character_id: str, contexts: Optional[list[dict[str, Any]]] = None):
+        """
+        Start a new chat session with a specific character.
+
+        Args:
+            character_id: The ID of the character to chat with.
+            contexts: Optional list of context objects to initialize the chat.
+        """
         msg = ClientStartChatMessage(characterId=character_id, contexts=contexts or [])
         self.logger.info(f"Starting chat with character: {character_id}")
         await self._send_client_message(msg)
 
     async def resume_chat(self, chat_id: str):
+        """
+        Resume an existing chat session.
+
+        Args:
+            chat_id: The ID of the chat to resume.
+        """
         msg = ClientResumeChatMessage(chatId=chat_id)
         self.logger.info(f"Resuming chat: {chat_id}")
         await self._send_client_message(msg)
 
     async def stop_chat(self, chat_id: str):
+        """
+        Stop an active chat session.
+
+        Args:
+            chat_id: The ID of the chat to stop.
+        """
         msg = ClientStopChatMessage(chatId=chat_id)
         self.logger.info(f"Stopping chat: {chat_id}")
         await self._send_client_message(msg)
@@ -136,6 +188,11 @@ class VoxtaClient:
     ):
         """
         Explicitly triggers an AI action/response.
+
+        Args:
+            action: The name of the action to trigger.
+            arguments: Optional dictionary of arguments for the action.
+            session_id: Optional session ID. Defaults to the active session.
         """
         target_session = session_id or self.session_id
         if not target_session:
@@ -146,6 +203,12 @@ class VoxtaClient:
         await self._send_client_message(msg)
 
     async def revert(self, session_id: Optional[str] = None):
+        """
+        Revert the last message in the session.
+
+        Args:
+            session_id: Optional session ID. Defaults to the active session.
+        """
         target_session = session_id or self.session_id
         if not target_session:
             return
@@ -153,6 +216,12 @@ class VoxtaClient:
         await self._send_client_message(msg)
 
     async def retry(self, session_id: Optional[str] = None):
+        """
+        Retry the last AI response generation.
+
+        Args:
+            session_id: Optional session ID. Defaults to the active session.
+        """
         target_session = session_id or self.session_id
         if not target_session:
             return
@@ -160,6 +229,12 @@ class VoxtaClient:
         await self._send_client_message(msg)
 
     async def typing_start(self, session_id: Optional[str] = None):
+        """
+        Notify the server that the user has started typing.
+
+        Args:
+            session_id: Optional session ID. Defaults to the active session.
+        """
         target_session = session_id or self.session_id
         if not target_session:
             return
@@ -167,6 +242,12 @@ class VoxtaClient:
         await self._send_client_message(msg)
 
     async def typing_end(self, session_id: Optional[str] = None):
+        """
+        Notify the server that the user has stopped typing.
+
+        Args:
+            session_id: Optional session ID. Defaults to the active session.
+        """
         target_session = session_id or self.session_id
         if not target_session:
             return
@@ -174,18 +255,38 @@ class VoxtaClient:
         await self._send_client_message(msg)
 
     async def load_characters_list(self):
+        """
+        Request the list of available characters.
+        """
         await self._send_client_message(ClientLoadCharactersListMessage())
 
     async def load_scenarios_list(self):
+        """
+        Request the list of available scenarios.
+        """
         await self._send_client_message(ClientLoadScenariosListMessage())
 
     async def load_chats_list(
         self, character_id: Optional[str] = None, scenario_id: Optional[str] = None
     ):
+        """
+        Request the list of available chats.
+
+        Args:
+            character_id: Optional filter by character ID.
+            scenario_id: Optional filter by scenario ID.
+        """
         msg = ClientLoadChatsListMessage(characterId=character_id, scenarioId=scenario_id)
         await self._send_client_message(msg)
 
     async def add_chat_participant(self, character_id: str, session_id: Optional[str] = None):
+        """
+        Add a character as a participant to the current chat session.
+
+        Args:
+            character_id: The ID of the character to add.
+            session_id: Optional session ID. Defaults to the active session.
+        """
         target_session = session_id or self.session_id
         if not target_session:
             return
@@ -193,6 +294,13 @@ class VoxtaClient:
         await self._send_client_message(msg)
 
     async def remove_chat_participant(self, character_id: str, session_id: Optional[str] = None):
+        """
+        Remove a character from the current chat session.
+
+        Args:
+            character_id: The ID of the character to remove.
+            session_id: Optional session ID. Defaults to the active session.
+        """
         target_session = session_id or self.session_id
         if not target_session:
             return
@@ -200,6 +308,12 @@ class VoxtaClient:
         await self._send_client_message(msg)
 
     async def request_suggestions(self, session_id: Optional[str] = None):
+        """
+        Request message suggestions from the AI.
+
+        Args:
+            session_id: Optional session ID. Defaults to the active session.
+        """
         target_session = session_id or self.session_id
         if not target_session:
             return
@@ -207,6 +321,13 @@ class VoxtaClient:
         await self._send_client_message(msg)
 
     async def inspect_audio_input(self, enabled: bool, session_id: Optional[str] = None):
+        """
+        Toggle audio input inspection mode.
+
+        Args:
+            enabled: Whether to enable or disable inspection.
+            session_id: Optional session ID. Defaults to the active session.
+        """
         target_session = session_id or self.session_id
         if not target_session:
             return
@@ -214,6 +335,14 @@ class VoxtaClient:
         await self._send_client_message(msg)
 
     async def update_message(self, message_id: str, text: str, session_id: Optional[str] = None):
+        """
+        Update the text of a previous message.
+
+        Args:
+            message_id: The ID of the message to update.
+            text: The new text for the message.
+            session_id: Optional session ID. Defaults to the active session.
+        """
         target_session = session_id or self.session_id
         if not target_session:
             return
@@ -221,6 +350,13 @@ class VoxtaClient:
         await self._send_client_message(msg)
 
     async def delete_message(self, message_id: str, session_id: Optional[str] = None):
+        """
+        Delete a message from the session history.
+
+        Args:
+            message_id: The ID of the message to delete.
+            session_id: Optional session ID. Defaults to the active session.
+        """
         target_session = session_id or self.session_id
         if not target_session:
             return
@@ -228,6 +364,13 @@ class VoxtaClient:
         await self._send_client_message(msg)
 
     async def subscribe_to_chat(self, session_id: str, chat_id: str):
+        """
+        Subscribe to events for a specific chat session.
+
+        Args:
+            session_id: The session ID.
+            chat_id: The chat ID.
+        """
         msg = ClientSubscribeToChatMessage(sessionId=session_id, chatId=chat_id)
         self.logger.info(f"Subscribing to chat: {chat_id}")
         await self._send_client_message(msg)
@@ -235,7 +378,10 @@ class VoxtaClient:
     async def inspect(self, session_id: str, enabled: bool = True):
         """
         Toggle session debug state.
-        NOTE: Effect unknown, no visible UI change or logged output confirmed.
+
+        Args:
+            session_id: The session ID.
+            enabled: Whether to enable or disable inspection.
         """
         msg = ClientInspectMessage(sessionId=session_id, enabled=enabled)
         self.logger.info(f"Sending inspect: session={session_id}, enabled={enabled}")
@@ -249,6 +395,16 @@ class VoxtaClient:
         do_user_inference: bool = True,
         do_character_inference: bool = True,
     ):
+        """
+        Send a user message to the session.
+
+        Args:
+            text: The message text.
+            session_id: Optional session ID. Defaults to the active session.
+            do_reply: Whether the AI should generate a reply immediately.
+            do_user_inference: Whether to perform action inference on the user message.
+            do_character_inference: Whether to perform action inference for the character response.
+        """
         target_session = session_id or self.session_id
         if not target_session:
             self.logger.error("No session ID available to send message")
@@ -265,6 +421,12 @@ class VoxtaClient:
         await self._send_client_message(msg)
 
     async def interrupt(self, session_id: Optional[str] = None):
+        """
+        Interrupt the current AI response/speech.
+
+        Args:
+            session_id: Optional session ID. Defaults to the active session.
+        """
         target_session = session_id or self.session_id
         if not target_session:
             return
@@ -273,8 +435,11 @@ class VoxtaClient:
 
     async def pause(self, session_id: Optional[str] = None, pause: bool = True):
         """
-        Pause automatic continuation.
-        NOTE: Effect unknown, AI often still responds to messages.
+        Pause automatic continuation of the chat.
+
+        Args:
+            session_id: Optional session ID. Defaults to the active session.
+            pause: Whether to pause or resume.
         """
         target_session = session_id or self.session_id
         if not target_session:
@@ -289,7 +454,12 @@ class VoxtaClient:
         text: str = "",
     ):
         """
-        Sends characterSpeechRequest to the server to ask the character to start/resume speaking.
+        Request the character to start/resume speaking.
+
+        Args:
+            character_id: The ID of the character.
+            session_id: Optional session ID. Defaults to the active session.
+            text: Optional specific text to speak.
         """
         target_session = session_id or self.session_id
 
@@ -307,7 +477,11 @@ class VoxtaClient:
         self, session_id: Optional[str] = None, message_id: Optional[str] = None
     ):
         """
-        Sends speechPlaybackStart to the server.
+        Notify the server that speech playback has started for a message.
+
+        Args:
+            session_id: Optional session ID. Defaults to the active session.
+            message_id: Optional message ID. Defaults to the last received message.
         """
         target_session = session_id or self.session_id
         target_message = message_id or self.last_message_id
@@ -324,7 +498,11 @@ class VoxtaClient:
         self, session_id: Optional[str] = None, message_id: Optional[str] = None
     ):
         """
-        Sends speechPlaybackComplete to the server.
+        Notify the server that speech playback has completed for a message.
+
+        Args:
+            session_id: Optional session ID. Defaults to the active session.
+            message_id: Optional message ID. Defaults to the last received message.
         """
         target_session = session_id or self.session_id
         target_message = message_id or self.last_message_id
@@ -351,6 +529,18 @@ class VoxtaClient:
         set_flags: Optional[list[str]] = None,
         enable_roles: Optional[dict[str, bool]] = None,
     ):
+        """
+        Update the session context, including actions, events, flags, and roles.
+
+        Args:
+            session_id: The session ID.
+            context_key: A unique key for this context update.
+            contexts: Optional list of context objects.
+            actions: Optional list of action definitions.
+            events: Optional list of event definitions.
+            set_flags: Optional list of flags to set.
+            enable_roles: Optional dictionary to enable/disable specific roles.
+        """
         msg = ClientUpdateContextMessage(
             sessionId=session_id,
             contextKey=context_key,
@@ -371,18 +561,34 @@ class VoxtaClient:
             self.transport.running = False
             return
         if msg_type == 3:  # Completion
-            if message.get("error"):
-                err_msg = message.get("error")
-                self.logger.error(f"Invocation failed: {err_msg}")
-                await self._emit(EventType.ERROR, {"$type": EventType.ERROR, "message": err_msg})
+            invocation_id = message.get("invocationId")
+            error = message.get("error")
+            result = message.get("result")
+            
+            completion_data = {
+                "$type": "completion",
+                "invocationId": invocation_id,
+                "error": error,
+                "result": result
+            }
+            
+            if error:
+                self.logger.error(f"Invocation {invocation_id} failed: {error}")
+                await self._emit(EventType.ERROR, completion_data)
+            else:
+                self.logger.debug(f"Invocation {invocation_id} completed")
+                await self._emit("completion", completion_data)
             return
 
         if msg_type == 1:  # Invocation
             target = message.get("target")
+            invocation_id = message.get("invocationId")
             if target == "ReceiveMessage":
                 args = message.get("arguments", [])
                 if args:
                     payload = args[0]
+                    if isinstance(payload, dict) and invocation_id:
+                        payload["invocationId"] = invocation_id
                     await self._process_voxta_event(payload)
 
     async def _process_voxta_event(self, payload: dict[str, Any]):

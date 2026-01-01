@@ -1,41 +1,41 @@
 # API Reference
 
-The library is structured into several modules following the Voxta C# SDK conventions.
+The Voxta Python client library is structured into several modules, providing both high-level chat interactions and low-level audio streaming capabilities.
 
-## VoxtaClient
+## Core Clients
 
-The main entry point for the library.
+### [VoxtaClient](api/client.md)
 
-### Methods
+The primary entry point for the library. It handles the SignalR connection, chat session management, and high-level message sending/receiving.
 
-- `__init__(url: str)`: Initialize the client.
-- `on(event_name: str, callback: Optional[Callable])`: Register an event listener.
-- `negotiate()`: Perform the initial HTTP negotiation.
-- `connect(token: str, cookies: Optional[Dict[str, str]])`: Establish the SignalR connection.
-- `close()`: Close the connection.
-- `send_message(text: str, ...)`: Send a user message.
-- `start_chat(character_id: str, ...)`: Start a new chat.
-- `update_context(...)`: Update session context, actions, or flags.
+**Key Features:**
+- Connection management (`negotiate`, `connect`, `close`)
+- Event-based architecture (`on`)
+- Chat session control (`start_chat`, `resume_chat`, `stop_chat`)
+- Message interaction (`send_message`, `update_message`, `delete_message`)
+- AI control (`trigger_action`, `interrupt`, `retry`, `revert`)
+- Context management (`update_context`)
 
-## Models
+### [VoxtaAudioClient](api/audio_client.md)
 
-All message structures are defined as dataclasses in `voxta_client.models`.
+A specialized client for streaming raw binary PCM audio data. Use this for low-latency voice interactions.
 
-### Outgoing Messages
+**Key Features:**
+- Binary audio streaming (`send_audio`, `on_audio`)
+- Dedicated WebSocket connection for audio throughput
 
-- `ClientSendMessage`
-- `ClientAuthenticateMessage`
-- `ClientRegisterAppMessage`
-- `ClientUpdateContextMessage`
+## Data Structures
 
-### Incoming Messages
+### [Models](api/models.md)
 
-- `ServerWelcomeMessage`
-- `ServerChatMessage`
-- `ServerActionMessage`
+All messages exchanged with the Voxta server are represented as typed dataclasses. 
 
-## Constants
+- **Outgoing Messages:** `ClientSendMessage`, `ClientStartChatMessage`, `ClientUpdateContextMessage`, etc.
+- **Incoming Messages:** `ServerChatMessage`, `ServerActionMessage`, `ServerWelcomeMessage`, etc.
 
-- `EventType`: String constants for all Voxta events.
-- `ServiceType`: Enum for Voxta service types.
+### [Constants](api/constants.md)
 
+Enums and string constants for event types and service types.
+
+- `EventType`: All possible event names emitted by `VoxtaClient`.
+- `ServiceType`: Various service types within the Voxta ecosystem (TTS, STT, etc.).

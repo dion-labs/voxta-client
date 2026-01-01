@@ -13,6 +13,13 @@ class VoxtaAudioClient:
     """
 
     def __init__(self, url: str, logger: Optional[logging.Logger] = None):
+        """
+        Initialize the audio client.
+
+        Args:
+            url: The base URL of the Voxta server.
+            logger: Optional logger instance.
+        """
         self.url = url
         self.logger = logger or logging.getLogger("VoxtaAudioClient")
         self.websocket: Optional[websockets.WebSocketClientProtocol] = None
@@ -22,6 +29,10 @@ class VoxtaAudioClient:
     async def connect(self, connection_token: str, cookies: Optional[dict[str, str]] = None):
         """
         Connect to the audio stream WebSocket and authenticate.
+
+        Args:
+            connection_token: The SignalR connection token obtained from negotiation.
+            cookies: Optional cookies to include in the connection request.
         """
         import urllib.parse
 
@@ -74,11 +85,20 @@ class VoxtaAudioClient:
             raise
 
     def on_audio(self, callback: Callable[[bytes], None]):
+        """
+        Register a callback for received audio data.
+
+        Args:
+            callback: Function that receives binary PCM data.
+        """
         self._on_audio_data = callback
 
     async def send_audio(self, pcm_data: bytes):
         """
         Send binary PCM data to the server.
+
+        Args:
+            pcm_data: Binary PCM audio data.
         """
         if self.websocket and self.running:
             try:
@@ -88,6 +108,9 @@ class VoxtaAudioClient:
                 self.running = False
 
     async def _read_loop(self):
+        """
+        Internal loop to read binary data from the WebSocket.
+        """
         try:
             while self.running and self.websocket:
                 data = await self.websocket.recv()
@@ -104,6 +127,9 @@ class VoxtaAudioClient:
             self.running = False
 
     async def close(self):
+        """
+        Close the audio client connection.
+        """
         self.running = False
         if self.websocket:
             await self.websocket.close()
