@@ -1,6 +1,6 @@
 site_name: Voxta Client
 site_description: A Python client library for interacting with the Voxta conversational AI platform via SignalR.
-site_url: https://github.com/dion-labs/voxta-client
+site_url: https://voxta.dionlabs.ai
 
 theme:
   name: material
@@ -33,6 +33,7 @@ extra:
 copyright: "© 2025 DionLabs.ai"
 
 nav:
+  - DionLabs.ai: https://dionlabs.ai
   - Home: index.md
   - Getting Started: getting-started.md
   - Python Dev Guide: PYTHON_DEVELOPMENT_GUIDE.md

@@ -1,10 +1,72 @@
-:root {
-  /* Override Material's default Purple with your exact Dion Violet */
-  --md-primary-fg-color: #4a00e0;
+/* 
+  DionLabs Theme Overrides for Material MkDocs
+  Matches dionlabs.ai color palette 
+*/
 
-  /* Override Accent with your exact Electric Cyan */
-  --md-accent-fg-color: #00f2ff;
+[data-md-color-scheme="slate"] {
+  /* Core Palette */
+  --md-primary-fg-color:        #4a00e0; /* Dion Violet */
+  --md-primary-fg-color--light:  #6a20ff;
+  --md-primary-fg-color--dark:   #3a00b0;
 
-  /* Make the background slightly darker (Void Black) */
-  --md-default-bg-color: #050508;
+  --md-accent-fg-color:         #00f2ff; /* Electric Cyan */
+  --md-accent-fg-color--transparent: rgba(0, 242, 255, 0.1);
+
+  /* Backgrounds */
+  --md-default-bg-color:        #050508; /* Void Black */
+  --md-default-bg-color--light:  #0a0a0d;
+  --md-default-bg-color--dark:   #000000;
+
+  /* Text Colors */
+  --md-default-fg-color:        #e0e0e0; /* Landing Page Text */
+  --md-default-fg-color--light:  #a0a0b0; /* Subtext */
+  --md-default-fg-color--lighter:#808090;
+
+  /* Code Blocks */
+  --md-code-bg-color:           #0a0a0d;
+  --md-code-fg-color:           #e0e0e0;
+
+  /* Header & Navigation */
+  --md-header-bg-color:         #050508;
+  --md-header-fg-color:         #ffffff;
+  --md-typeset-a-color:         #00f2ff;
+}
+
+/* UI Refinements to match Landing Page Vibe */
+
+/* Remove standard shadow and add a subtle cyan border to the header */
+.md-header {
+  box-shadow: none !important;
+  border-bottom: 1px solid rgba(0, 242, 255, 0.1) !important;
+}
+
+/* Style the navigation tabs */
+.md-tabs {
+  background-color: #050508 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Ensure headings have the lighter tech weight from landing page */
+.md-typeset h1, 
+.md-typeset h2, 
+.md-typeset h3 {
+  color: #ffffff !important;
+  font-weight: 400 !important;
+}
+
+/* Link hover effects */
+.md-typeset a:hover {
+  color: #4a00e0 !important;
+}
+
+/* Code block styling - matching the landing page "input" feel */
+.md-typeset pre > code {
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 4px;
+}
+
+/* Sidebar adjustments */
+.md-nav__link--active {
+  color: #00f2ff !important;
+  font-weight: 700;
 }
