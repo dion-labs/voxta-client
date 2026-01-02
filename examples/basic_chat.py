@@ -1,86 +1,55 @@
 import asyncio
 import os
-
+import logging
 from voxta_client import VoxtaClient
 
-"""
-Basic Chat Example
-------------------
-This script demonstrates how to:
-1. Initialize the VoxtaClient.
-2. Handle incoming messages from a character.
-3. Negotiate and establish a SignalR connection.
-4. Send a text message to the server.
-
-Usage:
-    python examples/basic_chat.py
-"""
-
+# --- Optional: Enable logs to see SignalR activity ---
+# logging.basicConfig(level=logging.INFO)
 
 async def main():
-    # 1. Initialize the client
-    # Replace with your Voxta server URL if different
     voxta_url = os.getenv("VOXTA_URL", "http://localhost:5384")
     client = VoxtaClient(voxta_url)
 
-    # Set up event listeners
-    @client.on("message")
-    async def on_message(payload):
-        if payload.get("senderType") == "Character":
-            print(f"\nCharacter: {payload.get('text')}")
+    # Handle character responses (Streaming)
+    @client.on("replyStart")
+    def on_start(_):
+        print("\nAI is thinking... [", end="", flush=True)
 
-    @client.on("error")
-    async def on_error(payload):
-        print(f"Error from Voxta: {payload.get('message')}")
+    @client.on("replyChunk")
+    def on_chunk(data):
+        print(data.get("text", ""), end="", flush=True)
 
-    # 2. Negotiate authentication
-    print(f"Negotiating connection with {voxta_url}...")
-    try:
-        token, cookies = client.negotiate()
-        if not token:
-            print("Failed to negotiate connection. Is the Voxta server running?")
-            return
-    except Exception as e:
-        print(f"Negotiation failed: {e}")
-        return
-
-    # 3. Connect (runs the message loop in the background)
-    connection_task = asyncio.create_task(client.connect(token, cookies))
+    @client.on("replyEnd")
+    def on_end(_):
+        print("] (Done)\n")
 
     # Wait for the client to be ready (connected and session pinned)
-    ready_event = asyncio.Event()
-    client.on("ready", lambda _: ready_event.set())
+    @client.on("ready")
+    async def on_ready(session_id):
+        print(f"Connected! Session ID: {session_id}")
+        
+        # Send a test message
+        message_text = "Hello! Tell me a short story."
+        print(f"Sending: '{message_text}'")
+        await client.send_message(message_text)
 
-    print("Connecting to Voxta...")
-    try:
-        # Wait up to 10 seconds for connection
-        await asyncio.wait_for(ready_event.wait(), timeout=10.0)
-    except asyncio.TimeoutError:
-        print("Timed out waiting for connection.")
-        await client.close()
-        await connection_task
+    # Connection Flow
+    token, cookies = client.negotiate()
+    if not token:
+        print("Error: Could not negotiate connection. Is Voxta running?")
         return
 
-    print(f"Connected! Session ID: {client.session_id}")
+    await client.connect(token, cookies)
+    print("Waiting for Voxta to be ready (Ensure a chat is active in the Voxta UI)...")
 
-    # 4. Send a message
-    message_text = "Hello! Tell me a short story."
-    print(f"Sending message: '{message_text}'")
-    await client.send_message(message_text)
-
-    # Keep the script running to receive the response
-    print("Waiting for response (Press Ctrl+C to stop)...")
     try:
-        # Wait for a few seconds to see the response
-        await asyncio.sleep(15)
+        # Keep alive
+        while client.running:
+            await asyncio.sleep(0.5)
     except KeyboardInterrupt:
         pass
     finally:
-        # Clean up
-        print("\nClosing connection...")
         await client.close()
-        await connection_task
-
 
 if __name__ == "__main__":
     asyncio.run(main())
