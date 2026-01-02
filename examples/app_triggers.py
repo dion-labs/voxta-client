@@ -22,9 +22,15 @@ To test this, you can create a Scenario Action in Voxta with a script effect:
 
 async def main():
     client = VoxtaClient(os.getenv("VOXTA_URL", "http://localhost:5384"))
+    ready = False
 
     @client.on("ready")
     async def on_ready(session_id):
+        nonlocal ready
+        if ready:
+            return
+        ready = True
+
         print(f"Ready! Subscribed to session: {session_id}")
         print("Waiting for triggers from Voxta...")
 

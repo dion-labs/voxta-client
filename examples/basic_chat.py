@@ -10,6 +10,7 @@ from voxta_client import VoxtaClient
 async def main():
     voxta_url = os.getenv("VOXTA_URL", "http://localhost:5384")
     client = VoxtaClient(voxta_url)
+    started = False
 
     # Handle character responses (Streaming)
     @client.on("replyStart")
@@ -27,6 +28,11 @@ async def main():
     # Wait for the client to be ready (connected and session pinned)
     @client.on("ready")
     async def on_ready(session_id):
+        nonlocal started
+        if started:
+            return
+        started = True
+
         print(f"Connected! Session ID: {session_id}")
 
         # Send a test message
