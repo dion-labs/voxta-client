@@ -564,14 +564,14 @@ class VoxtaClient:
             invocation_id = message.get("invocationId")
             error = message.get("error")
             result = message.get("result")
-            
+
             completion_data = {
                 "$type": "completion",
                 "invocationId": invocation_id,
                 "error": error,
-                "result": result
+                "result": result,
             }
-            
+
             if error:
                 self.logger.error(f"Invocation {invocation_id} failed: {error}")
                 await self._emit(EventType.ERROR, completion_data)

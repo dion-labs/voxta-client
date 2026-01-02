@@ -1,6 +1,6 @@
 import asyncio
 import os
-import logging
+
 from voxta_client import VoxtaClient
 
 """
@@ -18,6 +18,7 @@ To test this, you can create a Scenario Action in Voxta with a script effect:
 
 # --- Optional: Enable logs to see SignalR activity ---
 # logging.basicConfig(level=logging.INFO)
+
 
 async def main():
     client = VoxtaClient(os.getenv("VOXTA_URL", "http://localhost:5384"))
@@ -48,6 +49,7 @@ async def main():
         pass
     finally:
         await client.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

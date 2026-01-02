@@ -1,10 +1,11 @@
 import asyncio
 import os
-import logging
+
 from voxta_client import VoxtaClient
 
 # --- Optional: Enable logs to see SignalR activity ---
 # logging.basicConfig(level=logging.INFO)
+
 
 async def main():
     voxta_url = os.getenv("VOXTA_URL", "http://localhost:5384")
@@ -27,7 +28,7 @@ async def main():
     @client.on("ready")
     async def on_ready(session_id):
         print(f"Connected! Session ID: {session_id}")
-        
+
         # Send a test message
         message_text = "Hello! Tell me a short story."
         print(f"Sending: '{message_text}'")
@@ -50,6 +51,7 @@ async def main():
         pass
     finally:
         await client.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

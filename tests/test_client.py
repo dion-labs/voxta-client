@@ -314,8 +314,8 @@ async def test_handle_signalr_completion_error():
 
     with patch.object(client.logger, "error") as mock_log:
         await client._handle_server_message(completion_msg)
-        mock_log.assert_called_with("Invocation failed: Method not found")
-        assert error_data["message"] == "Method not found"
+        mock_log.assert_called_with("Invocation 123 failed: Method not found")
+        assert error_data["error"] == "Method not found"
 
 
 @pytest.mark.asyncio
