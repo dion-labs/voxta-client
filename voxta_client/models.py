@@ -332,7 +332,7 @@ class ServerUserInteractionRequestMessage(ServerMessage):
     """
 
     requestId: str  # noqa: N815
-    input: dict[str, Any]
+    input: dict[str, Any]  # noqa: A003
     type_name: str = "userInteractionRequest"
 
 
