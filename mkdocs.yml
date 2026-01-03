@@ -59,3 +59,17 @@ markdown_extensions:
       base_path: ["."]
   - pymdownx.superfences
   - tables
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: false
+            show_root_heading: true
+            show_category_heading: true
+            separate_signature: true
+            docstring_section_style: list
+            merge_init_into_class: true
+            show_signature_annotations: true

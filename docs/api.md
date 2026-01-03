@@ -1,41 +1,30 @@
 # API Reference
 
-The Voxta Python client library is structured into several modules, providing both high-level chat interactions and low-level audio streaming capabilities.
+The Voxta Python client is designed to be intuitive and event-driven. The library is divided into high-level clients for general interaction and low-level data structures for message handling.
 
-## Core Clients
+## Primary Interfaces
 
-### [VoxtaClient](api/client.md)
+If you are building an application, you will primarily interact with these two classes:
 
-The primary entry point for the library. It handles the SignalR connection, chat session management, and high-level message sending/receiving.
+| Class | Purpose |
+|-------|---------|
+| [`VoxtaClient`](api/client.md) | The main entry point. Handles SignalR, chat sessions, and text-based interaction. |
+| [`VoxtaAudioClient`](api/audio_client.md) | specialized client for raw PCM audio streaming (STT/TTS). |
 
-**Key Features:**
-- Connection management (`negotiate`, `connect`, `close`)
-- Event-based architecture (`on`)
-- Chat session control (`start_chat`, `resume_chat`, `stop_chat`)
-- Message interaction (`send_message`, `update_message`, `delete_message`)
-- AI control (`trigger_action`, `interrupt`, `retry`, `revert`)
-- Context management (`update_context`)
+## Data & Constants
 
-### [VoxtaAudioClient](api/audio_client.md)
+The library uses strongly-typed models and constants to ensure reliable communication with the Voxta server.
 
-A specialized client for streaming raw binary PCM audio data. Use this for low-latency voice interactions.
+*   **[Models](api/models.md)**: Dataclasses for every message type (e.g., `ClientSendMessage`, `ServerChatMessage`).
+*   **[Constants](api/constants.md)**: Enumerations for `EventType` and `ServiceType`.
 
-**Key Features:**
-- Binary audio streaming (`send_audio`, `on_audio`)
-- Dedicated WebSocket connection for audio throughput
+## Architectural Overview
 
-## Data Structures
+The client follows an **asynchronous, event-driven** pattern. 
 
-### [Models](api/models.md)
+1.  **Negotiate**: Perform HTTP handshake to get a connection token.
+2.  **Connect**: Establish the SignalR WebSocket connection.
+3.  **Listen**: Subscribe to events like `message`, `appTrigger`, or `replyStart`.
+4.  **Act**: Send messages or trigger actions via asynchronous methods.
 
-All messages exchanged with the Voxta server are represented as typed dataclasses. 
-
-- **Outgoing Messages:** `ClientSendMessage`, `ClientStartChatMessage`, `ClientUpdateContextMessage`, etc.
-- **Incoming Messages:** `ServerChatMessage`, `ServerActionMessage`, `ServerWelcomeMessage`, etc.
-
-### [Constants](api/constants.md)
-
-Enums and string constants for event types and service types.
-
-- `EventType`: All possible event names emitted by `VoxtaClient`.
-- `ServiceType`: Various service types within the Voxta ecosystem (TTS, STT, etc.).
+For a deep dive into the underlying protocol, see the [Protocol Support Matrix](protocol.md).

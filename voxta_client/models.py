@@ -42,6 +42,14 @@ class ServerWelcomeMessage(ServerMessage):
 class ServerChatMessage(ServerMessage):
     """
     Represents a chat message received from the server.
+
+    Attributes:
+        messageId: Unique identifier for the message.
+        senderId: ID of the character or user who sent the message.
+        text: The content of the message.
+        role: The role of the sender (e.g., 'Assistant', 'User').
+        timestamp: ISO timestamp of when the message was sent.
+        sessionId: The active chat session ID.
     """
 
     messageId: str  # noqa: N815
@@ -57,6 +65,13 @@ class ServerChatMessage(ServerMessage):
 class ServerActionMessage(ServerMessage):
     """
     Represents an action triggered by the AI (e.g., an emote or a command).
+
+    Attributes:
+        value: The name of the action (e.g., 'smile', 'search_web').
+        arguments: Optional list of parameters for the action.
+        role: The character role performing the action.
+        senderId: ID of the character.
+        sessionId: The active chat session ID.
     """
 
     value: str
