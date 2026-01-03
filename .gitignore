@@ -10,6 +10,8 @@ dist/
 *.egg-info/
 .pytest_cache/
 .coverage
+coverage.xml
+junit.xml
 htmlcov/
 .DS_Store
 
