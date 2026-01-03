@@ -41,6 +41,12 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: dion-labs/voxta-client
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./junit.xml
 
   docs:
     runs-on: ubuntu-latest

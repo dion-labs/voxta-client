@@ -52,7 +52,7 @@ ignore = []
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-addopts = "--cov=voxta_client --cov-report=term-missing --cov-report=xml"
+addopts = "--cov=voxta_client --cov-report=term-missing --cov-report=xml --junitxml=junit.xml"
 
 [tool.coverage.run]
 source = ["voxta_client"]
