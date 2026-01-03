@@ -2,7 +2,7 @@
 
 A core library for interacting with the [Voxta](https://voxta.ai) conversational AI platform using Python. This client enables real-time communication with Voxta characters using the SignalR protocol.
 
-Developed by [DionLabs](https://dionlabs.ai).
+Developed by [DionLabs](https://dionlabs.ai). Read our engineering logs on [Signals](https://signals.dionlabs.ai).
 
 ## Compatibility
 

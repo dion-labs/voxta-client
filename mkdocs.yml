@@ -34,6 +34,7 @@ copyright: "© 2025 DionLabs.ai"
 
 nav:
   - DionLabs.ai: https://dionlabs.ai
+  - Signals: https://signals.dionlabs.ai
   - Home: index.md
   - Getting Started: getting-started.md
   - Cookbook: cookbook.md
