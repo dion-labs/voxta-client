@@ -1,6 +1,7 @@
 # Voxta Client
 
 [![Build](https://github.com/dion-labs/voxta-client/actions/workflows/ci.yml/badge.svg)](https://github.com/dion-labs/voxta-client/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/dion-labs/voxta-client/branch/main/graph/badge.svg)](https://codecov.io/gh/dion-labs/voxta-client)
 [![PyPI version](https://img.shields.io/pypi/v/voxta-client.svg)](https://pypi.org/project/voxta-client/)
 [![Python versions](https://img.shields.io/pypi/pyversions/voxta-client.svg)](https://pypi.org/project/voxta-client/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
