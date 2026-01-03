@@ -20,6 +20,7 @@ Developed by [DionLabs](https://dionlabs.ai).
 ## Documentation
 
 - [Getting Started](getting-started.md)
+- [Cookbook (Recipes)](cookbook.md)
 - [Python Development Guide](PYTHON_DEVELOPMENT_GUIDE.md)
 - [Protocol Support Matrix](protocol.md)
 - [API Reference](api.md)

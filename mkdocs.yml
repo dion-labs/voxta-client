@@ -36,6 +36,7 @@ nav:
   - DionLabs.ai: https://dionlabs.ai
   - Home: index.md
   - Getting Started: getting-started.md
+  - Cookbook: cookbook.md
   - Python Dev Guide: PYTHON_DEVELOPMENT_GUIDE.md
   - Protocol Support: protocol.md
   - Changelog: changelog.md
